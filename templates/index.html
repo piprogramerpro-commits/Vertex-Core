@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VERTEX CORE | Viral Mode</title>
+    <style>
+        body { background: #050505; color: #00f2ff; font-family: 'Segoe UI', sans-serif; }
+        .spark-counter { 
+            position: fixed; top: 20px; right: 20px; 
+            background: rgba(0, 242, 255, 0.1); 
+            padding: 10px 20px; border: 1px solid #00f2ff;
+            border-radius: 50px; box-shadow: 0 0 15px #00f2ff;
+        }
+        .rank-tag { color: #ff0055; font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="spark-counter">⚡ SPARKS: <span id="spark-count">--</span></div>
+    
+    <div id="chat-container" style="margin-top: 100px; text-align: center;">
+        <h1 style="letter-spacing: 10px;">VERTEX <span style="color:#ff0055">CORE</span></h1>
+        <p>Potenciado por la Raspberry Pi de <span class="rank-tag">Gemo (Master Admin)</span></p>
+        
+        <div id="responses" style="height: 300px; overflow-y: auto; border: 1px solid #333; margin: 20px; padding: 20px;"></div>
+        
+        <input type="text" id="user-input" placeholder="Pregunta algo al Monstruo..." style="width: 60%; padding: 10px; background: #111; color: #fff; border: 1px solid #00f2ff;">
+        <button onclick="sendQuery()" style="padding: 10px 20px; cursor: pointer; background: #00f2ff; border: none; font-weight: bold;">ENVIAR</button>
+    </div>
+
+    <script>
+        async function sendQuery() {
+            const query = document.getElementById('user-input').value;
+            const res = await fetch('/ask', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({query: query, user_name: 'Invitado'})
+            });
+            const data = await res.json();
+            
+            document.getElementById('responses').innerHTML += `<p><b>Tú:</b> ${query}</p>`;
+            document.getElementById('responses').innerHTML += `<p style="color:#00f2ff"><b>Vertex:</b> ${data.vertex_response}</p>`;
+            document.getElementById('spark-count').innerText = data.sparks_remaining;
+        }
+    </script>
+</body>
+</html>
