@@ -15,44 +15,35 @@ def index():
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    data = request.json
-    user_name = data.get("user_name", "Invitado")
-    query = data.get("query", "")
-    
-    # --- SISTEMA DE COMANDOS ---
-    if query.lower() == "!top":
-        try:
-            all_keys = mem.db.keys("sparks_*")
-            ranking = []
-            for k in all_keys:
-                u = k.replace("sparks_", "")
-                s = mem.db.get(k)
-                ranking.append(f"{u}: {s} ⚡")
-            return jsonify({"vertex_response": "🏆 TOP USUARIOS: " + (" | ".join(ranking) if ranking else "¡Nadie aún!")})
-        except Exception as e:
-            return jsonify({"vertex_response": "Error accediendo al ranking."})
+    try:
+        data = request.json
+        user_name = data.get("user_name", "Invitado")
+        query = data.get("query", "")
 
-    # --- LÓGICA DE SPARKS ---
-    if user_name.lower() != "gemo":
-        current_sparks = int(mem.get_data(f"sparks_{user_name}") or 10)
-        if current_sparks <= 0:
-            return jsonify({"vertex_response": "❌ Te has quedado sin Sparks. ¡Vuelve mañana!"})
-        mem.set_data(f"sparks_{user_name}", current_sparks - 1)
-        display_sparks = current_sparks - 1
-    else:
-        display_sparks = "∞"
-    
-    # Respuesta IA
-    a_data = hub.get_context(query)
-    response_text = brain.synthesize(query, a_data)
-    
-    return jsonify({
-        "vertex_response": response_text, 
-        "sparks_remaining": display_sparks,
-        "is_admin": user_name.lower() == "gemo"
-    })
+        # 1. Obtener contexto (Lo que antes se quedaba solo en "recogiendo")
+        context_data = hub.get_context(query)
+        
+        # 2. Generar respuesta REAL con el cerebro
+        # Forzamos a que devuelva el texto final
+        response_text = brain.synthesize(query, context_data)
+        
+        # 3. Lógica de Sparks (Sin simplificar)
+        if user_name.lower() != "gemo":
+            current = int(mem.get_data(f"sparks_{user_name}") or 10)
+            if current <= 0:
+                return jsonify({"vertex_response": "⚠️ Sparks agotados."})
+            mem.set_data(f"sparks_{user_name}", current - 1)
+            sparks_info = current - 1
+        else:
+            sparks_info = "∞"
+
+        return jsonify({
+            "vertex_response": response_text,
+            "sparks_remaining": sparks_info
+        })
+    except Exception as e:
+        return jsonify({"vertex_response": f"ERROR CRÍTICO: {str(e)}"})
 
 if __name__ == '__main__':
-    # CRUCIAL PARA RAILWAY: Usar el puerto que nos asignan
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
