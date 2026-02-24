@@ -19,27 +19,40 @@ def ask():
     user_name = data.get("user_name", "Invitado")
     query = data.get("query", "")
     
-    # --- SISTEMA DE CRÉDITOS (SPARKS) ---
-    if user_name.lower() != "gemo":
-        sparks = int(mem.get_data(f"sparks_{user_name}") or 10)
-        
-        if sparks <= 0:
-            return jsonify({"vertex_response": "⚠️ Te has quedado sin Sparks. ¡Vuelve mañana o invita a un amigo para recargar!"})
-        
-        # Consumir un Spark
-        mem.set_data(f"sparks_{user_name}", sparks - 1)
-    else:
-        sparks = "∞" # Rango Dios tiene chispas infinitas
+    # --- SISTEMA DE COMANDOS ---
+    if query.lower() == "!top":
+        try:
+            all_keys = mem.db.keys("sparks_*")
+            ranking = []
+            for k in all_keys:
+                u = k.replace("sparks_", "")
+                s = mem.db.get(k)
+                ranking.append(f"{u}: {s} ⚡")
+            return jsonify({"vertex_response": "🏆 TOP USUARIOS: " + (" | ".join(ranking) if ranking else "¡Nadie aún!")})
+        except Exception as e:
+            return jsonify({"vertex_response": "Error accediendo al ranking."})
 
-    # Lógica de respuesta
+    # --- LÓGICA DE SPARKS ---
+    if user_name.lower() != "gemo":
+        current_sparks = int(mem.get_data(f"sparks_{user_name}") or 10)
+        if current_sparks <= 0:
+            return jsonify({"vertex_response": "❌ Te has quedado sin Sparks. ¡Vuelve mañana!"})
+        mem.set_data(f"sparks_{user_name}", current_sparks - 1)
+        display_sparks = current_sparks - 1
+    else:
+        display_sparks = "∞"
+    
+    # Respuesta IA
     a_data = hub.get_context(query)
     response_text = brain.synthesize(query, a_data)
     
     return jsonify({
-        "vertex_response": response_text,
-        "sparks_remaining": sparks,
+        "vertex_response": response_text, 
+        "sparks_remaining": display_sparks,
         "is_admin": user_name.lower() == "gemo"
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    # CRUCIAL PARA RAILWAY: Usar el puerto que nos asignan
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
