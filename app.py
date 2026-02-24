@@ -5,6 +5,8 @@ from modules.memory import VertexMemory
 import os
 
 app = Flask(__name__)
+
+# Inicialización de núcleos
 hub = APIHub()
 brain = VertexBrain()
 mem = VertexMemory()
@@ -17,32 +19,40 @@ def index():
 def ask():
     try:
         data = request.json
-        user_name = data.get("user_name", "Invitado")
+        user_email = data.get("email", "anon_user")
         query = data.get("query", "")
+        is_registered = data.get("is_registered", False)
 
-        # 1. Obtener contexto (Lo que antes se quedaba solo en "recogiendo")
+        # 1. LÓGICA DE SPARKS (30 si es pro, 10 si es free)
+        limit = 30 if is_registered else 10
+        current = mem.get_data(f"sparks_{user_email}")
+        current = int(current) if current is not None else limit
+
+        if current <= 0:
+            return jsonify({"vertex_response": "🛑 CRÉDITOS AGOTADOS. Sincroniza una cuenta Pro para continuar."})
+
+        # 2. PROCESAMIENTO MULTI-API (Sin simplificar)
+        # Obtenemos datos de las APIs externas
         context_data = hub.get_context(query)
         
-        # 2. Generar respuesta REAL con el cerebro
-        # Forzamos a que devuelva el texto final
-        response_text = brain.synthesize(query, context_data)
+        # 3. GENERACIÓN DE RESPUESTA (Aquí estaba el fallo)
+        # Pasamos el query y los datos de las APIs al cerebro
+        raw_response = brain.synthesize(query, context_data)
         
-        # 3. Lógica de Sparks (Sin simplificar)
-        if user_name.lower() != "gemo":
-            current = int(mem.get_data(f"sparks_{user_name}") or 10)
-            if current <= 0:
-                return jsonify({"vertex_response": "⚠️ Sparks agotados."})
-            mem.set_data(f"sparks_{user_name}", current - 1)
-            sparks_info = current - 1
-        else:
-            sparks_info = "∞"
+        # Si por algún motivo sale vacío, forzamos una respuesta de seguridad
+        final_response = raw_response if raw_response else "El núcleo Vertex no pudo sintetizar una respuesta. Reintentando..."
+
+        # 4. ACTUALIZACIÓN DE MEMORIA
+        mem.set_data(f"sparks_{user_email}", current - 1)
 
         return jsonify({
-            "vertex_response": response_text,
-            "sparks_remaining": sparks_info
+            "vertex_response": final_response,
+            "sparks_remaining": current - 1,
+            "status": "success"
         })
     except Exception as e:
-        return jsonify({"vertex_response": f"ERROR CRÍTICO: {str(e)}"})
+        print(f"Error detectado: {e}")
+        return jsonify({"vertex_response": f"⚠️ ERROR DE NÚCLEO: {str(e)}", "status": "error"})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
