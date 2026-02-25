@@ -1,13 +1,6 @@
 flask
+gunicorn
+google-generativeai
 requests
 groq
-PyPDF2
-gTTS
-Pillow
-duckduckgo-search
-gunicorn
-cryptography
-gunicorn
-flask
-requests
-cryptography
+redis
