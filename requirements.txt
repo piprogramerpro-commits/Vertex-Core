@@ -6,3 +6,4 @@ gTTS
 Pillow
 duckduckgo-search
 gunicorn
+cryptography
