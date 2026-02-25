@@ -2,118 +2,104 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Vertex AI | Dashboard</title>
+    <title>Vertex Core</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --bg-dark: #202123; --bg-chat: #343541; --sidebar: #202123; --white: #ececec; --gold: #d4af37; }
-        body { margin: 0; display: flex; height: 100vh; font-family: 'Sentry', sans-serif; background: var(--bg-chat); color: var(--white); overflow: hidden; }
-        
-        /* Sidebar Estilo ChatGPT */
-        #sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; padding: 10px; border-right: 1px solid #4d4d4f; }
-        .btn-new { border: 1px solid #4d4d4f; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 10px; }
-        .history-list { flex: 1; overflow-y: auto; font-size: 13px; margin-top: 10px; }
-        .history-item { padding: 10px; border-radius: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .history-item:hover { background: #2b2c2f; }
-        
-        /* Botones Inferiores */
-        .sidebar-footer { border-top: 1px solid #4d4d4f; padding: 10px 0; }
-        .footer-item { padding: 12px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
-        .footer-item:hover { background: #2b2c2f; }
+        :root { --bg: #0b0b0d; --sidebar: #161618; --bubble-v: #232327; --bubble-u: #343541; --gold: #d4af37; --text: #ececec; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* Area de Chat */
-        #main-view { flex: 1; display: flex; flex-direction: column; position: relative; }
-        #chat-window { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        .message { padding: 25px 18%; display: flex; gap: 20px; line-height: 1.6; }
-        .vertex-msg { background: #444654; }
-        .user-msg { background: var(--bg-chat); }
-        .avatar { width: 30px; height: 30px; border-radius: 3px; flex-shrink: 0; }
-        
-        /* Recuadros de Código */
-        pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #444; position: relative; }
-        code { font-family: 'Fira Code', monospace; font-size: 13px; }
+        /* Pantalla de Registro */
+        #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: var(--sidebar); padding: 40px; border-radius: 25px; text-align: center; width: 300px; border: 1px solid #333; }
+        .login-card input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; border-radius: 10px; color: white; box-sizing: border-box; }
+        .btn-login { width: 100%; padding: 12px; background: var(--gold); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
-        /* Input Box */
-        .input-area { padding: 20px 18% 40px 18%; background: linear-gradient(transparent, var(--bg-chat) 50%); }
-        .input-box { background: #40414f; border-radius: 12px; padding: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.2); display: flex; }
+        /* Frase Motivadora */
+        #phrase-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 3000; align-items: center; justify-content: center; text-align: center; }
+        .phrase-text { font-size: 2.2em; font-style: italic; color: var(--gold); animation: fade 2s forwards; }
+
+        /* Chat */
+        #app { display: none; height: 100vh; }
+        #sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; padding: 20px; border-right: 1px solid #222; }
+        #main-chat { flex: 1; display: flex; flex-direction: column; }
+        #messages { flex: 1; overflow-y: auto; padding: 40px 15%; }
+
+        /* Bocadillos Amigables */
+        .msg { margin-bottom: 20px; display: flex; width: 100%; animation: fadeInUp 0.4s ease; }
+        .user-row { justify-content: flex-end; }
+        .bubble { max-width: 75%; padding: 14px 22px; border-radius: 22px; font-size: 15px; line-height: 1.6; }
+        .v-bubble { background: var(--bubble-v); border-bottom-left-radius: 5px; }
+        .u-bubble { background: var(--bubble-u); border-bottom-right-radius: 5px; }
+
+        .input-area { padding: 20px 15% 40px 15%; }
+        .input-box { background: #252528; border-radius: 18px; padding: 14px 25px; display: flex; border: 1px solid #333; }
         input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
 
-        /* Dashboard de Registro (Modal) */
-        #auth-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: var(--bg-dark); padding: 30px; border-radius: 10px; border: 1px solid var(--gold); width: 300px; text-align: center; }
-        .modal-content input { width: 90%; background: #333; border: 1px solid #555; margin-bottom: 10px; padding: 10px; border-radius: 5px; }
-        .btn-gold { background: var(--gold); color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        pre { background: #000; padding: 15px; border-radius: 12px; border: 1px solid #444; overflow-x: auto; }
+        @keyframes fade { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-    <div id="sidebar">
-        <div class="btn-new" onclick="location.reload()">+ Nuevo Chat</div>
-        <div class="history-list" id="history">
-            <div class="history-item">Clima en Jerez...</div>
-            <div class="history-item">Ajustes de Raspberry...</div>
-        </div>
-        <div class="sidebar-footer">
-            <div class="footer-item" onclick="toggleModal()">👤 Mi cuenta (Gemo)</div>
-            <div class="footer-item">📈 Actividad del Sistema</div>
-            <div class="footer-item" style="color:var(--gold)">✨ Upgrade a Sparks Pro</div>
+    <div id="login-screen">
+        <div class="login-card">
+            <h2 style="color:var(--gold); margin-bottom: 25px;">Vertex Core</h2>
+            <input type="text" id="user" placeholder="Usuario">
+            <input type="password" id="pass" placeholder="Clave de acceso">
+            <button class="btn-login" onclick="start()">Entrar</button>
         </div>
     </div>
 
-    <div id="main-view">
-        <div id="chat-window">
-            <div class="message vertex-msg">
-                <div class="avatar" style="background:var(--gold)"></div>
-                <div class="text">Hola Gemo, me alegra saludarte. He actualizado mi núcleo con memoria y soporte para código. ¿Qué tienes para mí hoy?</div>
-            </div>
-        </div>
+    <div id="phrase-screen"><div class="phrase-text" id="phrase"></div></div>
 
-        <div class="input-area">
-            <div class="input-box">
-                <input type="text" id="userInput" placeholder="Envía un mensaje..." onkeypress="if(event.key==='Enter') send()">
-            </div>
+    <div id="app">
+        <div id="sidebar">
+            <h3 style="color:var(--gold)">VERTEX</h3>
+            <div style="flex:1"></div>
+            <div style="font-size:13px; opacity:0.7;">Operador: Gemo<br>Sparks: Ilimitados</div>
         </div>
-    </div>
-
-    <div id="auth-modal">
-        <div class="modal-content">
-            <h2 style="color:var(--gold)">Registro de Unidad</h2>
-            <input type="text" placeholder="ID de Usuario">
-            <input type="password" placeholder="Código de Acceso">
-            <button class="btn-gold" onclick="toggleModal()">Sincronizar</button>
+        <div id="main-chat">
+            <div id="messages"></div>
+            <div class="input-area">
+                <div class="input-box">
+                    <input type="text" id="userInput" placeholder="Escribe a Vertex..." onkeypress="if(event.key==='Enter') send()">
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        let chatHistory = [];
+        const phrases = ["El tiempo es Oro", "La disciplina es libertad", "Vertex: Potenciando el mañana", "Crea sin límites"];
 
-        function toggleModal() {
-            const m = document.getElementById('auth-modal');
-            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        function start() {
+            if(document.getElementById('user').value === "Gemo") {
+                document.getElementById('login-screen').style.display = 'none';
+                const p = document.getElementById('phrase-screen');
+                document.getElementById('phrase').innerText = phrases[Math.floor(Math.random()*phrases.length)];
+                p.style.display = 'flex';
+                setTimeout(() => {
+                    p.style.display = 'none';
+                    document.getElementById('app').style.display = 'flex';
+                }, 2500);
+            } else { alert("Usuario no reconocido"); }
         }
 
         async function send() {
             const i = document.getElementById('userInput');
             const q = i.value; if(!q) return;
-            const w = document.getElementById('chat-window');
-            
-            // Mostrar mensaje usuario
-            w.innerHTML += `<div class="message user-msg"><div class="avatar" style="background:#555"></div><div>${q}</div></div>`;
+            const m = document.getElementById('messages');
+            m.innerHTML += `<div class="msg user-row"><div class="bubble u-bubble">${q}</div></div>`;
             i.value = '';
-            w.scrollTop = w.scrollHeight;
+            m.scrollTop = m.scrollHeight;
 
             const res = await fetch('/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({query: q, history: chatHistory})
+                body: JSON.stringify({query: q, history: []})
             });
             const d = await res.json();
-            
-            // Guardar en memoria local para esta sesión
-            chatHistory.push({type: 'user', text: q});
-            chatHistory.push({type: 'vertex', text: d.vertex_response});
-
-            // Mostrar respuesta de Vertex renderizando Markdown
-            w.innerHTML += `<div class="message vertex-msg"><div class="avatar" style="background:var(--gold)"></div><div class="text">${marked.parse(d.vertex_response)}</div></div>`;
-            w.scrollTop = w.scrollHeight;
+            m.innerHTML += `<div class="msg"><div class="bubble v-bubble">${marked.parse(d.vertex_response)}</div></div>`;
+            m.scrollTop = m.scrollHeight;
         }
     </script>
 </body>
