@@ -63,3 +63,12 @@ def clean_system():
     # Solo Gemo puede dar esta orden
     janitor.clean_old_files(max_age_seconds=0) # Borrado inmediato
     return jsonify({"status": "Sistema purificado", "storage": janitor.get_disk_usage()})
+from modules.news_agent import VertexNewsAgent
+
+news_bot = VertexNewsAgent(brain, notifier)
+
+@app.route('/briefing', methods=['POST'])
+def briefing():
+    topic = request.json.get("topic", "IA y Economía")
+    status = news_bot.get_morning_briefing(topic)
+    return jsonify({"status": status})
