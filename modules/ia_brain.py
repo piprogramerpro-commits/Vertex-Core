@@ -27,8 +27,9 @@ class VertexBrain:
             
             info_contexto = f"\n[DATOS TIEMPO REAL]: {context_data}" if context_data else ""
 
+            # ACTUALIZADO: Hemos cambiado el modelo a llama-3.3-70b-versatile
             chat_completion = self.client.chat.completions.create(
-                model="llama3-70b-8192",
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": prompt_sistema},
                     {"role": "user", "content": f"{query} {info_contexto}"}
