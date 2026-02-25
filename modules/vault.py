@@ -11,11 +11,10 @@ class VertexVault:
         c.execute('''CREATE TABLE IF NOT EXISTS users 
                      (email TEXT PRIMARY KEY, sparks INTEGER, hwid TEXT, role TEXT)''')
         
-        # TU IDENTIDAD SELLADA
+        # EL ÚNICO COMANDANTE
         admin_email = 'piprogramerpro@gmail.com'
         admin_hwid = 'd16e372dd0bbff1e4806e23e31d82a2ea80095eaeb80754b3d2deea767ee3cb6'
         
-        # Limpiamos basura previa y aseguramos tu rango único
         c.execute("INSERT OR REPLACE INTO users (email, sparks, hwid, role) VALUES (?, ?, ?, ?)", 
                   (admin_email, 999999, admin_hwid, 'admin'))
         conn.commit()
@@ -31,16 +30,8 @@ class VertexVault:
         if res:
             saved_hwid, role = res
             if role == 'admin' and saved_hwid == current_hwid:
-                return "COMMANDER"
+                return "COMANDANTE"
             if role == 'admin' and saved_hwid != current_hwid:
-                return "IMPOSTOR"
-            return "USER"
-        return "GUEST"
-
-    def get_sparks(self, email):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute("SELECT sparks FROM users WHERE email=?", (email.lower().strip(),))
-        res = c.fetchone()
-        conn.close()
-        return res[0] if res else 0
+                return "USUARIO (Intento de Admin fallido)"
+            return "USUARIO"
+        return "NUEVO"
