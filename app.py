@@ -22,3 +22,27 @@ def get_new_invite():
     return jsonify({"error": "No autorizado"}), 401
 
 # (Mantenemos la ruta /ask con el cifrado y la lógica anterior)
+
+@app.route('/request_access', methods=['POST'])
+def request_access():
+    email = request.json.get("email")
+    if inviter.request_access(email):
+        # Vertex te avisa por Telegram que alguien quiere entrar
+        notifier.send_alert(f"NUEVA SOLICITUD: El usuario {email} quiere unirse a la red.")
+        return jsonify({"status": "Solicitud enviada. Vertex evaluará tu perfil."})
+    return jsonify({"status": "Ya tienes una solicitud pendiente."})
+from modules.mail_service import VertexMail
+
+mail_bot = VertexMail()
+
+@app.route('/request_access', methods=['POST'])
+def request_access():
+    email = request.json.get("email")
+    if inviter.request_access(email):
+        # 1. Alerta por Telegram (Inmediata)
+        notifier.send_alert(f"NUEVA SOLICITUD: {email}")
+        # 2. Notificación por Email (Formal)
+        mail_bot.send_notification(email)
+        
+        return jsonify({"status": "Solicitud enviada a la central. Espere confirmación."})
+    return jsonify({"status": "Solicitud ya existente."})
