@@ -55,3 +55,11 @@ def ask():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+from modules.janitor import VertexJanitor
+janitor = VertexJanitor()
+
+@app.route('/clean', methods=['POST'])
+def clean_system():
+    # Solo Gemo puede dar esta orden
+    janitor.clean_old_files(max_age_seconds=0) # Borrado inmediato
+    return jsonify({"status": "Sistema purificado", "storage": janitor.get_disk_usage()})
