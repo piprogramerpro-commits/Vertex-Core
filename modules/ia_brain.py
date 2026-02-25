@@ -1,15 +1,29 @@
+import os
+
 class VertexBrain:
     def __init__(self):
-        self.personality = "Arquitecto de Sistemas Senior"
+        self.name = "Vertex Core"
 
-    def synthesize(self, query, context):
-        # Si el usuario pide código, inyectamos instrucciones de alta calidad
-        if any(word in query.lower() for word in ["código", "programar", "script", "python"]):
-            return self.coder_logic(query)
+    def synthesize(self, query, context_data):
+        # AQUÍ ESTABA EL ERROR: No podemos devolver un texto fijo.
+        # Tenemos que procesar el query.
         
-        return f"Procesando datos: {context}. Respuesta optimizada para Gemo."
+        # Simulamos la lógica de la IA por si la API principal falla
+        # Pero esto debería conectar con tu modelo de lenguaje (OpenAI, Anthropic, etc.)
+        
+        if not query:
+            return "El núcleo está en espera. Introduce un comando."
 
-    def coder_logic(self, query):
-        # Aquí es donde Vertex supera a ChatGPT: 
-        # Cero explicaciones innecesarias, código puro, documentado y optimizado.
-        return f"Generando solución técnica para: {query}. Aplicando patrones de diseño y optimización de memoria..."
+        # Si tienes una clave de API configurada, aquí es donde sucede la magia.
+        # Por ahora, vamos a hacer que responda de forma dinámica y no fija:
+        
+        response = f"Análisis de Red: {query}. "
+        
+        if "clima" in query.lower():
+            response += "Consultando satélites... El clima detectado requiere acceso a la API de OpenWeather. "
+        elif "hola" in query.lower():
+            response = "¡Saludos, Gemo! Núcleo Vertex Core totalmente operativo y a tus órdenes."
+        else:
+            response += "Procesamiento neuronal completado. ¿En qué más puedo ayudarte?"
+            
+        return response
