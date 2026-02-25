@@ -63,3 +63,15 @@ def ask():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
+from modules.watcher import VertexWatcher
+
+watcher = VertexWatcher(notifier)
+
+@app.route('/watch', methods=['POST'])
+def watch():
+    data = request.json
+    coin = data.get("coin", "bitcoin")
+    target = data.get("target", 60000)
+    # Iniciamos una comprobación rápida
+    current = watcher.check_crypto(coin, target)
+    return jsonify({"status": "Vigilancia activa", "current_price": current})
