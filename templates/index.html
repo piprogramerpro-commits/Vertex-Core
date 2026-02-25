@@ -2,78 +2,102 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Vertex Core</title>
+    <title>Vertex Core | Gates</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --gold: #d4af37; --bg: #0a0a0a; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; }
+        :root { --gold: #d4af37; --bg: #050505; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
         
-        #sidebar { width: 300px; background: #111; border-right: 1px solid #222; padding: 30px; display: flex; flex-direction: column; }
-        #main { flex: 1; display: flex; flex-direction: column; }
+        /* Capa de Registro (El Muro) */
+        #registration-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5,5,5,0.98); z-index: 999; display: flex;
+            align-items: center; justify-content: center; flex-direction: column;
+        }
+        .reg-card {
+            border: 1px solid var(--gold); padding: 40px; background: #000;
+            text-align: center; border-radius: 8px; width: 350px;
+        }
         
-        .dash-card { border: 1px solid var(--gold); padding: 20px; background: #000; border-radius: 5px; text-align: center; }
-        .moto { color: var(--gold); font-weight: bold; margin-top: 15px; font-family: monospace; }
-        
+        /* Interfaz Principal (Oculta al inicio) */
+        #main-ui { display: flex; height: 100vh; filter: blur(10px); transition: 0.5s; }
+        #sidebar { width: 300px; background: #0a0a0a; border-right: 1px solid #222; padding: 20px; }
+        #chat-area { flex: 1; display: flex; flex-direction: column; }
         #chat { flex: 1; overflow-y: auto; padding: 40px; }
-        .input-box { background: #1a1a1a; margin: 20px; padding: 15px; border-radius: 8px; display: flex; gap: 15px; align-items: center; border: 1px solid #333; }
-        input { background: transparent; border: none; color: white; flex: 1; outline: none; }
         
-        .btn-v { color: #666; cursor: pointer; font-size: 20px; }
-        .btn-v:hover { color: var(--gold); }
+        .input-bar { background: #111; border: 1px solid #333; margin: 20px; padding: 15px; border-radius: 5px; display: flex; gap: 10px; }
+        input { background: transparent; border: none; color: white; flex: 1; outline: none; }
+        .gold-btn { background: var(--gold); border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .quote { color: var(--gold); font-family: monospace; margin-top: 20px; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div id="sidebar">
-        <h1 style="color:var(--gold); margin: 0 0 20px 0;">VERTEX</h1>
-        
-        <div class="dash-card">
-            <div style="font-size: 10px; color: #444;">REGISTRATION DASHBOARD</div>
-            <input type="text" id="email" value="piprogramerpro@gmail.com" style="width: 100%; background: #000; border: 1px solid #222; color: var(--gold); margin: 10px 0; padding: 5px; text-align: center;">
-            <div style="font-size: 12px;">RANGO: <span id="rango" style="color:var(--gold)">---</span></div>
-            <div style="font-size: 12px;">ENERGÍA: <span id="sparks" style="color:var(--gold)">---</span></div>
-            <div class="moto">"Discipline is everything."</div>
+
+    <div id="registration-overlay">
+        <div class="reg-card">
+            <h1 style="color:var(--gold); letter-spacing: 5px;">VERTEX</h1>
+            <p style="font-size: 11px; color: #555;">SISTEMA SOBERANO</p>
+            <div class="quote">"Discipline is everything."</div>
+            <input type="text" id="reg-email" placeholder="Introduce tu email" 
+                   style="width: 100%; background: #111; border: 1px solid #333; color: white; padding: 10px; margin: 20px 0; text-align: center;">
+            <button class="gold-btn" onclick="solicitarAcceso()">SOLICITAR ACCESO</button>
+            <p id="reg-status" style="font-size: 12px; margin-top: 15px; color: #888;"></p>
         </div>
     </div>
 
-    <div id="main">
-        <div id="chat"></div>
-        <div class="input-box">
-            <label for="f"><i class="fas fa-paperclip btn-v"></i></label>
-            <input type="file" id="f" style="display:none">
-            <i class="fas fa-microphone btn-v" onclick="runVoz()"></i>
-            <input type="text" id="in" placeholder="¿Qué necesitas, Comandante?" onkeypress="if(event.key=='Enter') enviar()">
-            <button onclick="enviar()" style="background:var(--gold); border:none; padding: 8px 15px; font-weight:bold; cursor:pointer;">ENVIAR</button>
+    <div id="main-ui">
+        <div id="sidebar">
+            <h3 style="color:var(--gold)">DASHBOARD</h3>
+            <div id="user-info" style="font-size: 12px; color: #888;"></div>
+            <div style="margin-top: 20px; font-size: 12px;">SPARKS: <span id="spark-count" style="color:var(--gold)">---</span></div>
+        </div>
+        <div id="chat-area">
+            <div id="chat"></div>
+            <div class="input-bar">
+                <i class="fas fa-paperclip" style="color:#444; cursor:pointer;"></i>
+                <input type="text" id="user-query" placeholder="Escribe una orden..." onkeypress="if(event.key=='Enter') ejecutar()">
+                <button class="gold-btn" onclick="ejecutar()">EJECUTAR</button>
+            </div>
         </div>
     </div>
 
     <script>
         const hwid = "d16e372dd0bbff1e4806e23e31d82a2ea80095eaeb80754b3d2deea767ee3cb6";
+        let userEmail = "";
 
-        async function enviar() {
-            const input = document.getElementById('in');
-            const mail = document.getElementById('email').value;
-            if(!input.value) return;
+        async function solicitarAcceso() {
+            userEmail = document.getElementById('reg-email').value;
+            const statusText = document.getElementById('reg-status');
+            
+            const res = await fetch('/check_auth', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: userEmail, hwid: hwid})
+            });
+            const data = await res.json();
 
+            if (data.access === "COMMANDER" || data.access === "USER_APPROVED") {
+                document.getElementById('registration-overlay').style.display = 'none';
+                document.getElementById('main-ui').style.filter = 'none';
+                document.getElementById('user-info').innerText = userEmail;
+                document.getElementById('spark-count').innerText = data.sparks;
+            } else {
+                statusText.innerText = "Solicitud enviada al Comandante. Esperando aprobación...";
+            }
+        }
+
+        async function ejecutar() {
+            const query = document.getElementById('user-query').value;
             const res = await fetch('/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({query: input.value, email: mail, hwid: hwid})
+                body: JSON.stringify({query: query, email: userEmail, hwid: hwid})
             });
             const d = await res.json();
-            
-            document.getElementById('chat').innerHTML += `<div style="margin-bottom:20px; border-left: 2px solid var(--gold); padding-left:15px;">${marked.parse(d.vertex_response)}</div>`;
-            document.getElementById('sparks').innerText = d.sparks;
-            document.getElementById('rango').innerText = d.role;
-            input.value = '';
-            document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
-        }
-
-        function runVoz() {
-            const r = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            r.lang = 'es-ES';
-            r.onresult = (e) => { document.getElementById('in').value = e.results[0][0].transcript; };
-            r.start();
+            document.getElementById('chat').innerHTML += `<div style="border-left: 2px solid var(--gold); padding-left:15px; margin-bottom:20px;">${marked.parse(d.vertex_response)}</div>`;
+            document.getElementById('spark-count').innerText = d.sparks;
+            document.getElementById('user-query').value = '';
         }
     </script>
 </body>
