@@ -5,39 +5,47 @@
     <title>Vertex Core | Sovereign Intelligence</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --bg: #050505; --gold: #d4af37; --text: #e0e0e0; --accent: #111; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 300px; background: var(--accent); border-right: 1px solid #222; padding: 40px 20px; display: flex; flex-direction: column; }
+        :root { --bg: #0b0b0d; --gold: #d4af37; --text: #efeff1; --accent: #1c1c1f; }
+        body { margin: 0; font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; }
+        
+        #sidebar { width: 300px; background: #121214; border-right: 1px solid #222; padding: 40px 25px; display: flex; flex-direction: column; }
         #main { flex: 1; display: flex; flex-direction: column; background: radial-gradient(circle at center, #111 0%, #050505 100%); }
-        #chat { flex: 1; overflow-y: auto; padding: 50px 15%; scroll-behavior: smooth; }
-        .input-area { padding: 30px 15%; background: rgba(5,5,5,0.9); }
-        .input-box { background: #181818; border: 1px solid #333; border-radius: 4px; padding: 12px; display: flex; align-items: center; }
-        input { background: transparent; border: none; color: white; flex: 1; outline: none; font-size: 15px; }
-        .quote-box { margin-top: auto; padding: 20px; border-left: 2px solid var(--gold); background: #0a0a0a; font-style: italic; font-size: 13px; color: #888; }
-        .status-dot { height: 8px; width: 8px; background-color: #00ff00; border-radius: 50%; display: inline-block; margin-right: 10px; }
+        
+        #chat { flex: 1; overflow-y: auto; padding: 40px 10%; scroll-behavior: smooth; }
+        .input-area { padding: 20px 10%; background: rgba(11, 11, 13, 0.95); }
+        .input-box { background: var(--accent); border: 1px solid #333; border-radius: 6px; padding: 12px; display: flex; align-items: center; }
+        
+        input { background: transparent; border: none; color: white; flex: 1; outline: none; font-size: 14px; }
+        button { background: none; border: none; color: var(--gold); cursor: pointer; font-weight: bold; font-family: monospace; }
+        
+        .spark-badge { color: var(--gold); font-family: monospace; font-size: 12px; border: 1px solid var(--gold); padding: 5px 10px; border-radius: 4px; margin-top: 10px; display: inline-block; }
+        .quote-section { margin-top: auto; padding-top: 20px; border-top: 1px solid #222; font-style: italic; font-size: 13px; color: #666; min-height: 40px; }
+        
+        .vertex-msg { border-left: 2px solid var(--gold); padding-left: 15px; margin-bottom: 25px; line-height: 1.6; }
+        .user-msg { text-align: right; color: #888; margin-bottom: 15px; font-size: 0.9em; }
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <h1 style="color:var(--gold); letter-spacing: 4px; font-size: 22px; margin-bottom: 5px;">VERTEX</h1>
-        <p style="font-size: 10px; color: #555; margin-bottom: 30px;">REGISTRATION DASHBOARD v4.2</p>
+        <h2 style="color:var(--gold); letter-spacing: 3px; margin-bottom: 5px;">VERTEX CORE</h2>
+        <div style="font-size: 10px; color: #444; margin-bottom: 30px;">DASHBOARD DE REGISTRO V.4</div>
         
-        <div id="user-vault" style="background: #000; padding: 15px; border: 1px solid #222;">
-            <input type="text" id="email" value="gemo@vertex.com" style="width: 100%; margin-bottom: 10px; font-family: monospace;">
-            <div style="color:var(--gold); font-size: 12px;">ENERGY: <span id="sparks">999k</span> ⚡</div>
+        <div id="registration">
+            <input type="text" id="email" value="gemo@vertex.com" style="width: 100%; margin-bottom: 10px; background: #000; padding: 8px; border: 1px solid #222; color: #888;">
+            <div class="spark-badge">⚡ ENERGÍA: <span id="sparks">---</span> SPARKS</div>
         </div>
 
-        <div class="quote-box" id="quote">"La disciplina lo es todo."</div>
+        <div class="quote-section" id="quote">"La disciplina lo es todo."</div>
     </div>
-    
+
     <div id="main">
         <div id="chat">
-            <div style="color: var(--gold); margin-bottom: 20px;">> SISTEMA INICIALIZADO. BIENVENIDO, COMANDANTE.</div>
+            <div class="vertex-msg">SISTEMA ONLINE. Esperando órdenes, Comandante.</div>
         </div>
         <div class="input-area">
             <div class="input-box">
-                <input type="text" id="msg" placeholder="Introducir comando o token de acceso..." onkeypress="if(event.key=='Enter') send()">
-                <button onclick="send()" style="background:none; border:none; color:var(--gold); cursor:pointer; font-weight:bold;">EJECUTAR</button>
+                <input type="text" id="userInput" placeholder="Escriba un comando..." onkeypress="if(event.key==='Enter') send()">
+                <button onclick="send()">EJECUTAR</button>
             </div>
         </div>
     </div>
@@ -45,36 +53,34 @@
     <script>
         const quotes = [
             "La disciplina lo es todo.",
-            "La privacidad no es un derecho, es un escudo.",
-            "El conocimiento sin acción no tiene valor.",
-            "Soberanía tecnológica o servidumbre digital.",
-            "Vertex no duerme, Vertex vigila.",
+            "La soberanía tecnológica es el único camino al oro.",
+            "En el caos, busca la oportunidad.",
+            "La persistencia aniquila la resistencia.",
             "Construye en silencio, que el éxito haga el ruido."
         ];
-        
+
         setInterval(() => {
-            const q = quotes[Math.floor(Math.random() * quotes.length)];
-            document.getElementById('quote').innerText = `"${q}"`;
-        }, 8000);
+            document.getElementById('quote').innerText = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+        }, 10000);
 
         async function send() {
-            const m = document.getElementById('msg');
+            const input = document.getElementById('userInput');
             const chat = document.getElementById('chat');
-            const q = m.value; m.value = '';
+            const query = input.value; if(!query) return;
 
-            chat.innerHTML += `<div style="color:#555; margin-bottom:15px;">$ ${q}</div>`;
-            
+            chat.innerHTML += `<div class="user-msg">${query}</div>`;
+            input.value = '';
+
             const res = await fetch('/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({query: q, email: document.getElementById('email').value})
+                body: JSON.stringify({query: query, email: document.getElementById('email').value})
             });
-            const d = await res.json();
+            const data = await res.json();
             
-            chat.innerHTML += `<div style="margin-bottom:30px;">${marked.parse(d.vertex_response)}</div>`;
-            document.getElementById('sparks').innerText = d.sparks;
+            document.getElementById('sparks').innerText = data.sparks || '0';
+            chat.innerHTML += `<div class="vertex-msg">${marked.parse(data.vertex_response)}</div>`;
             chat.scrollTop = chat.scrollHeight;
-            if(d.audio_url) new Audio(d.audio_url).play();
         }
     </script>
 </body>
