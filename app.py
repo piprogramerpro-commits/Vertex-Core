@@ -7,6 +7,9 @@ app = Flask(__name__)
 hub = APIHub()
 brain = VertexBrain()
 
+# Diccionario temporal para guardar historial por sesión (en el servidor)
+sessions_history = {}
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -16,13 +19,25 @@ def ask():
     try:
         data = request.json
         query = data.get("query", "")
-        # Recogemos contexto de las APIs activas
+        user_id = data.get("user_id", "default_gemo") # Identificador de sesión
+        
+        # Recuperar historial previo si existe
+        history = sessions_history.get(user_id, [])
+        
+        # Contexto de APIs en tiempo real
         context = hub.get_context(query)
-        # Procesamos con la IA (Llama 3.3 vía Groq)
-        response = brain.synthesize(query, context)
+        
+        # Respuesta de la IA con memoria
+        response = brain.synthesize(query, history)
+        
+        # Actualizar historial en el servidor
+        history.append({"type": "user", "text": query})
+        history.append({"type": "vertex", "text": response})
+        sessions_history[user_id] = history[-10:] # Guardamos los últimos 10 mensajes
+        
         return jsonify({"vertex_response": response})
     except Exception as e:
-        return jsonify({"vertex_response": f"Error de sistema: {str(e)}"})
+        return jsonify({"vertex_response": f"Error crítico: {str(e)}"})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
