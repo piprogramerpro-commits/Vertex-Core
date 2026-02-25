@@ -2,47 +2,118 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Vertex Core AI</title>
+    <title>Vertex AI | Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { background: #0f0f0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; }
-        #chat-container { width: 100%; max-width: 900px; height: 100vh; display: flex; flex-direction: column; }
-        #messages { flex: 1; overflow-y: auto; padding: 40px 20px; }
-        .row { margin-bottom: 20px; display: flex; }
-        .user { justify-content: flex-end; }
-        .bubble { max-width: 75%; padding: 15px 20px; border-radius: 18px; line-height: 1.5; }
-        .user-b { background: #2b2b2b; }
-        .vertex-b { background: #1a1a1a; border-left: 3px solid #d4af37; }
-        .input-area { padding: 30px; background: #0f0f0f; }
-        .input-box { background: #222; border: 1px solid #333; border-radius: 12px; padding: 10px 20px; display: flex; }
-        input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 1.1em; }
-        .gold { color: #d4af37; font-weight: bold; text-align: center; letter-spacing: 2px; }
+        :root { --bg-dark: #202123; --bg-chat: #343541; --sidebar: #202123; --white: #ececec; --gold: #d4af37; }
+        body { margin: 0; display: flex; height: 100vh; font-family: 'Sentry', sans-serif; background: var(--bg-chat); color: var(--white); overflow: hidden; }
+        
+        /* Sidebar Estilo ChatGPT */
+        #sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; padding: 10px; border-right: 1px solid #4d4d4f; }
+        .btn-new { border: 1px solid #4d4d4f; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 10px; }
+        .history-list { flex: 1; overflow-y: auto; font-size: 13px; margin-top: 10px; }
+        .history-item { padding: 10px; border-radius: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item:hover { background: #2b2c2f; }
+        
+        /* Botones Inferiores */
+        .sidebar-footer { border-top: 1px solid #4d4d4f; padding: 10px 0; }
+        .footer-item { padding: 12px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .footer-item:hover { background: #2b2c2f; }
+
+        /* Area de Chat */
+        #main-view { flex: 1; display: flex; flex-direction: column; position: relative; }
+        #chat-window { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .message { padding: 25px 18%; display: flex; gap: 20px; line-height: 1.6; }
+        .vertex-msg { background: #444654; }
+        .user-msg { background: var(--bg-chat); }
+        .avatar { width: 30px; height: 30px; border-radius: 3px; flex-shrink: 0; }
+        
+        /* Recuadros de Código */
+        pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #444; position: relative; }
+        code { font-family: 'Fira Code', monospace; font-size: 13px; }
+
+        /* Input Box */
+        .input-area { padding: 20px 18% 40px 18%; background: linear-gradient(transparent, var(--bg-chat) 50%); }
+        .input-box { background: #40414f; border-radius: 12px; padding: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.2); display: flex; }
+        input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
+
+        /* Dashboard de Registro (Modal) */
+        #auth-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--bg-dark); padding: 30px; border-radius: 10px; border: 1px solid var(--gold); width: 300px; text-align: center; }
+        .modal-content input { width: 90%; background: #333; border: 1px solid #555; margin-bottom: 10px; padding: 10px; border-radius: 5px; }
+        .btn-gold { background: var(--gold); color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="chat-container">
-        <div style="padding: 20px;" class="gold">VERTEX CORE SYSTEM</div>
-        <div id="messages"></div>
+    <div id="sidebar">
+        <div class="btn-new" onclick="location.reload()">+ Nuevo Chat</div>
+        <div class="history-list" id="history">
+            <div class="history-item">Clima en Jerez...</div>
+            <div class="history-item">Ajustes de Raspberry...</div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="footer-item" onclick="toggleModal()">👤 Mi cuenta (Gemo)</div>
+            <div class="footer-item">📈 Actividad del Sistema</div>
+            <div class="footer-item" style="color:var(--gold)">✨ Upgrade a Sparks Pro</div>
+        </div>
+    </div>
+
+    <div id="main-view">
+        <div id="chat-window">
+            <div class="message vertex-msg">
+                <div class="avatar" style="background:var(--gold)"></div>
+                <div class="text">Hola Gemo, me alegra saludarte. He actualizado mi núcleo con memoria y soporte para código. ¿Qué tienes para mí hoy?</div>
+            </div>
+        </div>
+
         <div class="input-area">
             <div class="input-box">
-                <input type="text" id="userInput" placeholder="Pregunta a Vertex..." onkeypress="if(event.key==='Enter') send()">
+                <input type="text" id="userInput" placeholder="Envía un mensaje..." onkeypress="if(event.key==='Enter') send()">
             </div>
         </div>
     </div>
+
+    <div id="auth-modal">
+        <div class="modal-content">
+            <h2 style="color:var(--gold)">Registro de Unidad</h2>
+            <input type="text" placeholder="ID de Usuario">
+            <input type="password" placeholder="Código de Acceso">
+            <button class="btn-gold" onclick="toggleModal()">Sincronizar</button>
+        </div>
+    </div>
+
     <script>
+        let chatHistory = [];
+
+        function toggleModal() {
+            const m = document.getElementById('auth-modal');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        }
+
         async function send() {
             const i = document.getElementById('userInput');
             const q = i.value; if(!q) return;
-            const m = document.getElementById('messages');
-            m.innerHTML += `<div class="row user"><div class="bubble user-b">${q}</div></div>`;
+            const w = document.getElementById('chat-window');
+            
+            // Mostrar mensaje usuario
+            w.innerHTML += `<div class="message user-msg"><div class="avatar" style="background:#555"></div><div>${q}</div></div>`;
             i.value = '';
+            w.scrollTop = w.scrollHeight;
+
             const res = await fetch('/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({query: q})
+                body: JSON.stringify({query: q, history: chatHistory})
             });
             const d = await res.json();
-            m.innerHTML += `<div class="row"><div class="bubble vertex-b">${d.vertex_response}</div></div>`;
-            m.scrollTop = m.scrollHeight;
+            
+            // Guardar en memoria local para esta sesión
+            chatHistory.push({type: 'user', text: q});
+            chatHistory.push({type: 'vertex', text: d.vertex_response});
+
+            // Mostrar respuesta de Vertex renderizando Markdown
+            w.innerHTML += `<div class="message vertex-msg"><div class="avatar" style="background:var(--gold)"></div><div class="text">${marked.parse(d.vertex_response)}</div></div>`;
+            w.scrollTop = w.scrollHeight;
         }
     </script>
 </body>
