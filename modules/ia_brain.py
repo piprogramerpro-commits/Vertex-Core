@@ -7,12 +7,11 @@ class VertexBrain:
         
     def synthesize(self, query, history):
         prompt = (
-            "Eres Vertex Core. Un asistente inteligente, minimalista y directo. "
-            "Responde con precisión. No satures al usuario con preguntas constantes. "
-            "Usuario: Gemo. Ciudad: Jerez. Usa Markdown para el código."
+            "Eres Vertex Core. Inteligencia Soberana. Responde de forma brillante y directa. "
+            "Usuario: Gemo. Localización: Jerez. Si el usuario pide código, usa bloques Markdown."
         )
         messages = [{"role": "system", "content": prompt}]
-        for h in history[-5:]:
+        for h in history[-10:]:
             messages.append({"role": "user" if h['type'] == 'user' else "assistant", "content": h['text']})
         messages.append({"role": "user", "content": query})
 
