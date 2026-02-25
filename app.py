@@ -1,51 +1,57 @@
 from flask import Flask, render_template, request, jsonify
+from werkzeug.utils import secure_filename
 from modules.api_hub import APIHub
 from modules.ia_brain import VertexBrain
-from modules.memory import VertexMemory
+from modules.file_processor import FileProcessor
 from modules.search_engine import VertexSearch
 import os
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 hub = APIHub()
 brain = VertexBrain()
-vault = VertexMemory()
+reader = FileProcessor()
 scanner = VertexSearch()
 
 @app.route('/')
-def index():
+def index(): 
     return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file"})
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(path)
+    content = reader.process(path)
+    return jsonify({"filename": filename, "content": content})
 
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
         data = request.json
-        query = data.get("query", "").lower()
-        email = data.get("email", "invitado@vertex.com")
+        query = data.get("query", "")
+        file_ctx = data.get("file_context", "")
         
-        # 1. CONTEXTO DE SENSORES (APIs)
-        api_context = hub.get_context(query)
+        # 1. Radar de Internet (Si es necesario)
+        web_ctx = ""
+        if any(x in query.lower() for x in ["busca", "internet", "investiga", "actualidad"]):
+            web_ctx = scanner.search(query)
+            
+        # 2. Sensores API
+        api_ctx = hub.get_context(query)
         
-        # 2. CONTEXTO DE MEMORIA (Recuerdos de Gemo)
-        user_prefs = vault.get_user_context(email)
-        
-        # 3. CONTEXTO DE INTERNET (Búsqueda Autónoma)
-        # Si la pregunta parece requerir info actual o desconocida
-        web_context = ""
-        if any(x in query for x in ["busca", "internet", "quien es", "que paso", "actualidad"]):
-            web_context = scanner.search(query)
-        
-        # 4. SÍNTESIS MAESTRA
-        full_query = f"""
-        [SENSORES]: {api_context}
-        [MEMORIA]: {user_prefs}
-        [WEB_RESEARCH]: {web_context}
-        [USUARIO]: {query}
-        """
-        
+        # 3. Síntesis
+        full_query = f"[ARCHIVO]: {file_ctx}\n[WEB]: {web_ctx}\n[APIS]: {api_ctx}\nUsuario: {query}"
         response = brain.synthesize(full_query, [])
+        
         return jsonify({"vertex_response": response})
     except Exception as e:
-        return jsonify({"vertex_response": f"Fallo de sistema: {str(e)}"})
+        return jsonify({"vertex_response": f"Error de núcleo: {str(e)}"})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
