@@ -2,10 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Vertex Core | Intelligence</title>
+    <title>Vertex Core | Sovereign Intelligence</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --bg: #0b0b0d; --side: #121214; --gold: #d4af37; --text: #efeff1; --bubble-v: #1c1c1f; --bubble-u: #2b2b2f; }
+        :root { --bg: #0b0b0d; --side: #121214; --gold: #d4af37; --text: #efeff1; --bubble-v: #1c1c1f; --bubble-u: #2b2b2f; --secure: #00ff00; }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
         /* Pantalla de Inicio / Registro */
@@ -24,25 +24,26 @@
         #sidebar { width: 280px; background: var(--side); display: flex; flex-direction: column; padding: 20px; border-right: 1px solid #222; }
         #main { flex: 1; display: flex; flex-direction: column; position: relative; }
         
-        /* Terminal SECRETA (Solo para tu Raspberry) */
-        #admin-terminal { display: none; position: absolute; top: 10px; right: 10px; width: 350px; height: 200px; background: rgba(0,0,0,0.9); border: 1px solid var(--gold); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; z-index: 1000; overflow-y: auto; }
+        /* Terminal SECRETA para Raspberry */
+        #admin-terminal { display: none; position: absolute; top: 10px; right: 10px; width: 350px; height: 200px; background: rgba(0,0,0,0.95); border: 1px solid var(--gold); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; z-index: 1000; overflow-y: auto; border-radius: 8px; box-shadow: 0 0 20px rgba(212,175,55,0.2); }
 
-        /* Chat */
-        #chat-flow { flex: 1; overflow-y: auto; padding: 50px 15%; }
+        /* Chat Flow */
+        #chat-flow { flex: 1; overflow-y: auto; padding: 50px 15%; scroll-behavior: smooth; }
         .msg { margin-bottom: 25px; display: flex; animation: fadeInUp 0.5s ease; }
         .user-row { justify-content: flex-end; }
-        .bubble { padding: 15px 22px; border-radius: 20px; max-width: 80%; line-height: 1.6; }
-        .v-bubble { background: var(--bubble-v); border-bottom-left-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .bubble { padding: 15px 22px; border-radius: 20px; max-width: 80%; line-height: 1.6; font-size: 15px; }
+        .v-bubble { background: var(--bubble-v); border-bottom-left-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: 1px solid #222; }
         .u-bubble { background: var(--bubble-u); border-bottom-right-radius: 4px; }
 
-        .input-area { padding: 20px 15% 40px 15%; }
-        .input-box { background: #1c1c1f; border-radius: 15px; padding: 14px 25px; display: flex; border: 1px solid #333; }
+        /* Input Area */
+        .input-area { padding: 20px 15% 40px 15%; background: linear-gradient(transparent, var(--bg) 70%); }
+        .input-box { background: #1c1c1f; border-radius: 15px; padding: 14px 25px; display: flex; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
-        /* Footer Sidebar */
-        .side-item { padding: 12px; border-radius: 10px; cursor: pointer; margin-top: 5px; font-size: 14px; }
+        /* Side Items */
+        .side-item { padding: 12px; border-radius: 10px; cursor: pointer; margin-top: 5px; font-size: 14px; transition: 0.2s; }
         .side-item:hover { background: #252528; }
 
-        @keyframes pulse { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes pulse { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -50,11 +51,11 @@
 
     <div id="auth-screen">
         <div class="auth-card">
-            <h1 style="color:var(--gold); margin-bottom: 30px;">VERTEX CORE</h1>
-            <input type="email" id="email" placeholder="Correo electrónico">
+            <h1 style="color:var(--gold); margin-bottom: 30px; letter-spacing: 2px;">VERTEX CORE</h1>
+            <input type="email" id="email" placeholder="Correo electrónico / Root Key">
             <input type="password" id="pass" placeholder="Contraseña">
-            <button class="btn btn-gold" onclick="enter('user')">Registrarse / Entrar</button>
-            <button class="btn btn-ghost" onclick="enter('guest')">Entrar como Invitado</button>
+            <button class="btn btn-gold" onclick="enter('user')">ACCEDER AL NÚCLEO</button>
+            <button class="btn btn-ghost" onclick="enter('guest')">ENTRAR COMO INVITADO</button>
         </div>
     </div>
 
@@ -62,63 +63,84 @@
 
     <div id="app">
         <div id="sidebar">
-            <h2 style="color:var(--gold)">VERTEX</h2>
-            <div style="flex:1"></div>
+            <h2 style="color:var(--gold); margin-bottom: 30px;">VERTEX</h2>
+            
             <div class="side-item" onclick="alert('Historial de Actividad: Estable')">📈 Actividad</div>
             <div class="side-item" onclick="alert('Cuenta: Gemo (Admin)')">👤 Mi Account</div>
-            <div style="padding: 10px; font-size: 11px; color: #555;">v2.0 Stable | Jerez Node</div>
+            
+            <div style="flex:1"></div>
+
+            <div style="font-size:12px; color:var(--gold); margin-bottom: 5px;">✨ Sparks: Ilimitados</div>
+            
+            <div class="side-item" style="color:var(--secure); font-size:10px; border:1px solid var(--secure); margin-top:10px; padding:5px; text-align:center; font-weight:bold; cursor:default;">
+                🔐 CIFRADO AES-256 ACTIVO
+            </div>
+
+            <div style="padding: 15px 0 0 0; font-size: 10px; color: #444; text-align: center;">
+                Node: Jerez-RPi-01 | v2.5 Stable
+            </div>
         </div>
+
         <div id="main">
             <div id="admin-terminal">
-                [SYSTEM]> Terminal de Control Raspberry Detectada...<br>
-                [LOG]> Enlace con Railway: OK<br>
-                [LOG]> Memoria Redis: Conectada<br>
-                [LOG]> Esperando comandos root...
+                [SYSTEM]> Motor de Cifrado Inicializado...<br>
+                [SEC]> Llave simétrica cargada: AES-256-VRTX<br>
+                [LOG]> Sesión de Gemo detectada. Terminal lista.<br>
+                > _
             </div>
+
             <div id="chat-flow"></div>
+
             <div class="input-area">
                 <div class="input-box">
-                    <input type="text" id="userInput" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') send()">
+                    <input type="text" id="userInput" placeholder="Envía un comando o mensaje..." onkeypress="if(event.key==='Enter') send()">
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        const phrases = ["El tiempo es Oro", "La constancia vence a la inteligencia", "Soberanía Digital", "Vertex: Tu mente, amplificada"];
+
         function enter(type) {
-            // MODO SECRETO PARA TU RASPBERRY
-            // Escribe "gemo-root" en el campo de email para activar la terminal
-            const email = document.getElementById('email').value;
-            if(email === "gemo-root") {
+            const emailField = document.getElementById('email').value;
+            
+            // FILTRO DE TERMINAL ROOT PARA TU RASPBERRY
+            if(emailField === "gemo-root") {
                 document.getElementById('admin-terminal').style.display = 'block';
             }
 
             document.getElementById('auth-screen').style.display = 'none';
-            const s = document.getElementById('splash');
-            s.style.display = 'flex';
+            const splash = document.getElementById('splash');
+            splash.innerText = phrases[Math.floor(Math.random() * phrases.length)];
+            splash.style.display = 'flex';
+            
             setTimeout(() => {
-                s.style.display = 'none';
+                splash.style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
-            }, 2000);
+            }, 2500);
         }
 
         async function send() {
-            const i = document.getElementById('userInput');
-            const q = i.value; if(!q) return;
+            const input = document.getElementById('userInput');
+            const query = input.value; if(!query) return;
             const flow = document.getElementById('chat-flow');
             
-            flow.innerHTML += `<div class="msg user-row"><div class="bubble u-bubble">${q}</div></div>`;
-            i.value = '';
+            flow.innerHTML += `<div class="msg user-row"><div class="bubble u-bubble">${query}</div></div>`;
+            input.value = '';
             flow.scrollTop = flow.scrollHeight;
 
-            const res = await fetch('/ask', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({query: q, history: []})
-            });
-            const d = await res.json();
-            
-            flow.innerHTML += `<div class="msg"><div class="bubble v-bubble">${marked.parse(d.vertex_response)}</div></div>`;
+            try {
+                const res = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: query, history: []})
+                });
+                const data = await res.json();
+                flow.innerHTML += `<div class="msg"><div class="bubble v-bubble">${marked.parse(data.vertex_response)}</div></div>`;
+            } catch (e) {
+                flow.innerHTML += `<div class="msg"><div class="bubble v-bubble">Error de conexión con el núcleo.</div></div>`;
+            }
             flow.scrollTop = flow.scrollHeight;
         }
     </script>
