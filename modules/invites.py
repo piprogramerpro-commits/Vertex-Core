@@ -23,12 +23,3 @@ class VertexInvites:
             conn.close()
             return True
         except: return False
-
-    def approve_user(self, email):
-        token = secrets.token_hex(8)
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute("UPDATE requests SET status='approved', token=? WHERE email=?", (token, email))
-        conn.commit()
-        conn.close()
-        return f"/register/{token}"
