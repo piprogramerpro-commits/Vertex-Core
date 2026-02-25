@@ -1,6 +1,6 @@
-flask
-gunicorn
-google-generativeai
-requests
-groq
-redis
+Flask==3.0.3
+gunicorn==22.0.0
+google-generativeai==0.7.2
+requests==2.32.3
+groq==0.9.0
+redis==5.0.8
