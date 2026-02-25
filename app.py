@@ -21,22 +21,24 @@ def ask():
     identity = vault.check_identity(email, hwid)
 
     if identity == "COMMANDER":
-        # Aquí Vertex sabe que habla contigo, el tono es de "socio en el crimen"
+        # Respuesta con humor ácido y pro para ti
         response = brain.synthesize(query, [])
-        sparks = "INFINITOS"
+        role_label = "COMANDANTE"
+        sparks_label = "INFINITOS"
     elif identity == "IMPOSTOR":
-        return jsonify({
-            "vertex_response": "Buen intento. Pero mi lealtad no se hackea con un email robado. Largo de aquí.",
-            "sparks": 0
-        })
+        return jsonify({"vertex_response": "⚠️ INTRUSO DETECTADO. Hardware no válido.", "role": "BLOQUEADO", "sparks": 0})
     else:
-        # Usuario normal: Útil pero con ese toque de "te estoy vigilando"
         if not vault.use_spark(email):
-            return jsonify({"vertex_response": "Te has quedado sin Sparks. La soberanía no es gratis, vuelve cuando tengas energía.", "sparks": 0})
+            return jsonify({"vertex_response": "Sin energía.", "role": "USUARIO", "sparks": 0})
         response = brain.synthesize(query, [])
-        sparks = vault.get_sparks(email)
+        role_label = "USUARIO"
+        sparks_label = vault.get_sparks(email)
 
-    return jsonify({"vertex_response": response, "sparks": sparks})
+    return jsonify({
+        "vertex_response": response,
+        "sparks": sparks_label,
+        "role": role_label
+    })
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))

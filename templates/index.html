@@ -2,62 +2,115 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Vertex Core | Sovereign Intelligence</title>
+    <title>Vertex Core | Sovereign System</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --bg: #050505; --gold: #d4af37; --text: #e0e0e0; --accent: #111; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 320px; background: var(--accent); border-right: 1px solid #222; padding: 40px 20px; display: flex; flex-direction: column; }
-        #main { flex: 1; display: flex; flex-direction: column; }
-        #chat { flex: 1; overflow-y: auto; padding: 50px 10%; }
-        .input-box { background: #181818; border: 1px solid #333; border-radius: 4px; padding: 12px; display: flex; margin: 20px 10%; }
-        input { background: transparent; border: none; color: white; flex: 1; outline: none; }
-        .reg-dash { background: #000; border: 1px solid var(--gold); padding: 20px; border-radius: 4px; margin-bottom: 20px; }
-        .quote-after { color: var(--gold); font-weight: bold; font-family: monospace; margin-top: 15px; display: none; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        
+        #sidebar { width: 320px; background: var(--accent); border-right: 1px solid #222; padding: 30px 20px; display: flex; flex-direction: column; }
+        #main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        
+        /* Dashboard de Registro */
+        .reg-dash { border: 1px solid var(--gold); padding: 15px; border-radius: 4px; background: #000; margin-bottom: 20px; }
+        .stat-box { font-size: 12px; margin-top: 10px; color: #888; }
+        
+        /* Chat y Actividad */
+        #chat { flex: 1; overflow-y: auto; padding: 40px 10%; scroll-behavior: smooth; }
+        .activity-log { font-size: 10px; color: #444; font-family: monospace; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        
+        /* Input Area mejorada */
+        .input-container { background: #181818; border: 1px solid #333; margin: 20px 10%; padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 10px; }
+        input[type="text"] { background: transparent; border: none; color: white; flex: 1; outline: none; font-size: 14px; }
+        
+        /* Botones Especiales */
+        .icon-btn { color: #555; cursor: pointer; transition: 0.3s; font-size: 18px; }
+        .icon-btn:hover { color: var(--gold); }
+        .btn-exec { background: var(--gold); color: black; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
+
+        .quote-post { color: var(--gold); font-size: 12px; font-weight: bold; margin-top: 10px; display: none; text-align: center; }
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <h1 style="color:var(--gold); letter-spacing: 4px;">VERTEX</h1>
+        <h1 style="color:var(--gold); letter-spacing: 5px; margin: 0;">VERTEX</h1>
+        <p style="font-size: 9px; color: #444; margin-bottom: 30px;">SOVEREIGN INTELLIGENCE V4.0</p>
+
         <div class="reg-dash">
-            <p style="font-size: 11px; color: #555; margin: 0 0 10px 0;">REGISTRATION DASHBOARD</p>
-            <input type="text" id="email" value="piprogramerpro@gmail.com" style="width: 90%; color: var(--gold); margin-bottom: 10px;">
-            <div style="font-size: 13px;">SPARKS: <span id="sparks">---</span></div>
-            <div id="post-reg-quote" class="quote-after">"Discipline is everything."</div>
+            <p style="font-size: 10px; color: var(--gold); margin: 0 0 10px 0;">REGISTRATION DASHBOARD</p>
+            <input type="text" id="email" value="piprogramerpro@gmail.com" style="width: 100%; background: #111; border: 1px solid #333; color: white; padding: 5px; font-size: 12px;">
+            <div class="stat-box">SPARKS: <span id="sparks" style="color:var(--gold)">---</span></div>
+            <div class="stat-box">STATUS: <span id="role-status" style="color:var(--gold)">VERIFICANDO...</span></div>
+            <div id="discipline-quote" class="quote-post">"Discipline is everything."</div>
         </div>
-        <div style="margin-top: auto; color: #444; font-style: italic;" id="random-quote">"La disciplina lo es todo."</div>
+
+        <div class="activity-log" id="activity">
+            > SYSTEM BOOTED...<br>
+            > ENCRYPTION ACTIVE...
+        </div>
+
+        <div style="margin-top: auto; font-style: italic; font-size: 12px; color: #555;" id="random-quote">
+            "La soberanía tecnológica es el único camino."
+        </div>
     </div>
+
     <div id="main">
-        <div id="chat"><div style="color:var(--gold)">> SISTEMA ESPERANDO CREDENCIALES...</div></div>
-        <div class="input-box">
-            <input type="text" id="msg" placeholder="Introducir comando..." onkeypress="if(event.key=='Enter') send()">
-            <button onclick="send()" style="background:none; border:none; color:var(--gold); cursor:pointer;">EJECUTAR</button>
+        <div id="chat"></div>
+        
+        <div class="input-container">
+            <label for="file-input"><i class="fas fa-paperclip icon-btn" title="Insertar Archivo"></i></label>
+            <input type="file" id="file-input" style="display: none;">
+            
+            <i class="fas fa-microphone icon-btn" id="voice-btn" title="Activar Voz" onclick="startVoice()"></i>
+            
+            <input type="text" id="userInput" placeholder="Escriba un comando o suba un archivo..." onkeypress="if(event.key==='Enter') send()">
+            
+            <button class="btn-exec" onclick="send()">EJECUTAR</button>
         </div>
     </div>
+
     <script>
-        // Función para simular el HWID de terminal en el navegador para esta prueba
-        const myHWID = "d16e372dd0bbff1e4806e23e31d82a2ea80095eaeb80754b3d2deea767ee3cb6";
+        const hwid = "d16e372dd0bbff1e4806e23e31d82a2ea80095eaeb80754b3d2deea767ee3cb6";
+
+        function logActivity(msg) {
+            const act = document.getElementById('activity');
+            act.innerHTML += `<br>> ${msg}`;
+            act.scrollTop = act.scrollHeight;
+        }
 
         async function send() {
-            const m = document.getElementById('msg');
+            const input = document.getElementById('userInput');
             const email = document.getElementById('email').value;
-            if(!m.value) return;
+            if(!input.value) return;
 
+            logActivity(`EXECUTING: ${input.value.substring(0, 15)}...`);
+            
             const res = await fetch('/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({query: m.value, email: email, hwid: myHWID})
+                body: JSON.stringify({query: input.value, email: email, hwid: hwid})
             });
             const d = await res.json();
-            
-            document.getElementById('chat').innerHTML += `<div style="margin-bottom:20px; border-left: 2px solid var(--gold); padding-left:15px;">${marked.parse(d.vertex_response)}</div>`;
+
+            document.getElementById('chat').innerHTML += `<div style="margin-bottom:25px; border-left: 2px solid var(--gold); padding-left:15px;">${marked.parse(d.vertex_response)}</div>`;
             document.getElementById('sparks').innerText = d.sparks;
+            document.getElementById('role-status').innerText = d.role;
+            document.getElementById('discipline-quote').style.display = 'block';
             
-            // Mostrar frase motivadora tras el registro/primer comando
-            document.getElementById('post-reg-quote').style.display = 'block';
-            
-            m.value = '';
+            input.value = '';
             document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+        }
+
+        function startVoice() {
+            logActivity("VOICE ENGINE STARTING...");
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'es-ES';
+            recognition.onresult = (event) => {
+                document.getElementById('userInput').value = event.results[0][0].transcript;
+                logActivity("VOICE CAPTURED.");
+            };
+            recognition.start();
         }
     </script>
 </body>
