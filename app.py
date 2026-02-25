@@ -2,17 +2,10 @@ from flask import Flask, render_template, request, jsonify
 import os
 from modules.vault import VertexVault
 from modules.ia_brain import VertexBrain
-from modules.search_engine import VertexSearch
-from modules.mail_service import VertexMail
-from modules.invites import VertexInvites
 
 app = Flask(__name__)
-
 vault = VertexVault()
 brain = VertexBrain()
-scanner = VertexSearch()
-mail_bot = VertexMail()
-inviter = VertexInvites()
 
 @app.route('/')
 def index():
@@ -20,26 +13,35 @@ def index():
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    try:
-        data = request.json
-        email = data.get("email", "invitado@vertex.com")
-        query = data.get("query", "")
-        
-        vault.add_user(email)
-        if not vault.use_spark(email):
-            return jsonify({"vertex_response": "Error: Energía insuficiente en la cuenta.", "sparks": 0})
+    data = request.json
+    email = data.get("email", "").strip().lower()
+    hwid = data.get("hwid", "")
+    query = data.get("query", "")
 
-        # Búsqueda web solo si es necesario para mantener profesionalidad
-        context = scanner.search(query) if any(x in query.lower() for x in ["busca", "investiga", "noticias"]) else ""
-        
-        response = brain.synthesize(f"[CONTEXTO: {context}] Usuario: {query}", [])
-        
+    identity = vault.check_identity(email, hwid)
+
+    if identity == "ADMIN_CONFIRMED":
+        prefix = "[ESTADO: COMANDANTE DETECTADO]"
+        sparks_display = "INFINITOS"
+    elif identity == "IMPOSTOR":
         return jsonify({
-            "vertex_response": response,
-            "sparks": vault.get_sparks(email)
+            "vertex_response": "⚠️ **PROTOCOLO DE SEGURIDAD ACTIVADO.** Hardware no autorizado. Intento de suplantación registrado.",
+            "sparks": 0,
+            "role": "INTRUSO"
         })
-    except Exception as e:
-        return jsonify({"vertex_response": f"Fallo en el núcleo: {str(e)}"})
+    else:
+        if not vault.use_spark(email):
+            return jsonify({"vertex_response": "Energía agotada. Solicite acceso al Comandante.", "sparks": 0})
+        prefix = "[ESTADO: USUARIO]"
+        sparks_display = vault.get_sparks(email)
+
+    response = brain.synthesize(f"{prefix} {query}", [])
+    
+    return jsonify({
+        "vertex_response": response,
+        "sparks": sparks_display,
+        "role": identity
+    })
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
