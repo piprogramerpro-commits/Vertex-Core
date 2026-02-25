@@ -7,3 +7,7 @@ Pillow
 duckduckgo-search
 gunicorn
 cryptography
+gunicorn
+flask
+requests
+cryptography

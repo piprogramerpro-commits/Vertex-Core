@@ -1,48 +1,64 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify
+import os
+from modules.vault import VertexVault
+from modules.ia_brain import VertexBrain
+from modules.file_processor import FileProcessor
+from modules.search_engine import VertexSearch
+from modules.multimodal import VertexSensors
+from modules.executor import SystemExecutor
+from modules.notifier import VertexNotifier
+from modules.mail_service import VertexMail
 from modules.invites import VertexInvites
-# ... (todas las importaciones previas)
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Inicialización
+vault = VertexVault()
+brain = VertexBrain()
+reader = FileProcessor()
+scanner = VertexSearch()
+sensors = VertexSensors()
+sys_exec = SystemExecutor()
+notifier = VertexNotifier()
+mail_bot = VertexMail()
 inviter = VertexInvites()
 
-@app.route('/register/<token>')
-def register_with_token(token):
-    if inviter.validate_token(token):
-        # Aquí podrías redirigir a una página de bienvenida especial
-        return render_template('index.html', msg="ACCESO CONCEDIDO")
-    return "TOKEN INVÁLIDO O YA USADO", 403
+@app.route('/')
+def index(): 
+    return render_template('index.html')
 
-@app.route('/generate_invite', methods=['POST'])
-def get_new_invite():
-    # Solo Gemo puede generar invitaciones (protección por email)
-    data = request.json
-    if data.get("email") == "gemo@vertex.com":
-        token = inviter.generate_token()
-        return jsonify({"invite_link": f"/register/{token}"})
-    return jsonify({"error": "No autorizado"}), 401
-
-# (Mantenemos la ruta /ask con el cifrado y la lógica anterior)
-
-@app.route('/request_access', methods=['POST'])
-def request_access():
-    email = request.json.get("email")
-    if inviter.request_access(email):
-        # Vertex te avisa por Telegram que alguien quiere entrar
-        notifier.send_alert(f"NUEVA SOLICITUD: El usuario {email} quiere unirse a la red.")
-        return jsonify({"status": "Solicitud enviada. Vertex evaluará tu perfil."})
-    return jsonify({"status": "Ya tienes una solicitud pendiente."})
-from modules.mail_service import VertexMail
-
-mail_bot = VertexMail()
-
-@app.route('/request_access', methods=['POST'])
-def request_access():
-    email = request.json.get("email")
-    if inviter.request_access(email):
-        # 1. Alerta por Telegram (Inmediata)
-        notifier.send_alert(f"NUEVA SOLICITUD: {email}")
-        # 2. Notificación por Email (Formal)
-        mail_bot.send_notification(email)
+@app.route('/ask', methods=['POST'])
+def ask():
+    try:
+        data = request.json
+        email = data.get("email", "invitado@vertex.com")
+        query = data.get("query", "")
         
-        return jsonify({"status": "Solicitud enviada a la central. Espere confirmación."})
+        vault.add_user(email)
+        if not vault.use_spark(email):
+            return jsonify({"vertex_response": "Energía insuficiente. Solicite recarga."})
+
+        web_ctx = scanner.search(query) if "busca" in query.lower() else ""
+        response = brain.synthesize(f"[WEB: {web_ctx}] Usuario: {query}", [])
+        
+        return jsonify({
+            "vertex_response": response,
+            "sparks": vault.get_sparks(email)
+        })
+    except Exception as e:
+        return jsonify({"vertex_response": f"Error: {str(e)}"})
+
+@app.route('/request_access', methods=['POST'])
+def request_access():
+    email = request.json.get("email")
+    if inviter.request_access(email):
+        notifier.send_alert(f"SOLICITUD: {email}")
+        mail_bot.send_notification(email)
+        return jsonify({"status": "Solicitud enviada a piprogramerpro@gmail.com."})
     return jsonify({"status": "Solicitud ya existente."})
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)

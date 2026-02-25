@@ -1,28 +1,27 @@
 import smtplib
 from email.mime.text import MIMEText
-import os
 
 class VertexMail:
     def __init__(self):
-        self.sender = "piprogramerpro@gmail.com"
-        self.password = os.environ.get("MAIL_PASSWORD") # Configúrala en Railway
+        self.user = "69c916ff2ce6bdb35cc4427d8c523fba"
+        self.password = "0e6818ac29e443f7b28fcbce9574bbd4"
+        self.host = "in-v3.mailjet.com"
+        self.port = 587
+        self.destination = "piprogramerpro@gmail.com"
 
     def send_notification(self, candidate_email):
-        if not self.password:
-            return "Error: Contraseña de correo no configurada."
-            
-        subject = "📦 NUEVA SOLICITUD DE ACCESO - VERTEX CORE"
-        body = f"Comandante Gemo,\n\nEl usuario {candidate_email} ha solicitado acceso al núcleo de Vertex.\n\nEvalúe el perfil y genere el token si es apto.\n\n-- Vertex System --"
-        
+        subject = "📦 NUEVA SOLICITUD DE ACCESO - VERTEX"
+        body = f"Comandante Gemo,\n\nEl usuario {candidate_email} ha solicitado acceso.\n\nVertex Core."
         msg = MIMEText(body)
         msg['Subject'] = subject
-        msg['From'] = self.sender
-        msg['To'] = self.sender
+        msg['From'] = f"Vertex System <{self.user}>"
+        msg['To'] = self.destination
 
         try:
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                server.login(self.sender, self.password)
-                server.sendmail(self.sender, self.sender, msg.as_string())
-            return "Email enviado con éxito."
+            with smtplib.SMTP(self.host, self.port) as server:
+                server.starttls()
+                server.login(self.user, self.password)
+                server.sendmail(self.user, self.destination, msg.as_string())
+            return "OK"
         except Exception as e:
-            return f"Fallo en envío: {str(e)}"
+            return str(e)
