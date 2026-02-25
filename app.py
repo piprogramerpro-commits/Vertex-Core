@@ -14,34 +14,23 @@ def index():
 @app.route('/ask', methods=['POST'])
 def ask():
     data = request.json
-    email = data.get("email", "").strip().lower()
+    email = data.get("email", "").lower()
     hwid = data.get("hwid", "")
     query = data.get("query", "")
 
     identity = vault.check_identity(email, hwid)
 
-    if identity == "ADMIN_CONFIRMED":
-        prefix = "[ESTADO: COMANDANTE DETECTADO]"
-        sparks_display = "INFINITOS"
+    if identity == "COMMANDER":
+        response = brain.synthesize(f"[ORDEN PRIORITARIA] {query}", [])
+        sparks = "INFINITOS"
     elif identity == "IMPOSTOR":
-        return jsonify({
-            "vertex_response": "⚠️ **PROTOCOLO DE SEGURIDAD ACTIVADO.** Hardware no autorizado. Intento de suplantación registrado.",
-            "sparks": 0,
-            "role": "INTRUSO"
-        })
+        return jsonify({"vertex_response": "⚠️ **ACCESO DENEGADO.** Hardware no reconocido para el rango de Comandante.", "sparks": "BLOQUEADO"})
     else:
-        if not vault.use_spark(email):
-            return jsonify({"vertex_response": "Energía agotada. Solicite acceso al Comandante.", "sparks": 0})
-        prefix = "[ESTADO: USUARIO]"
-        sparks_display = vault.get_sparks(email)
+        # Aquí el sistema para usuarios normales
+        sparks = vault.get_sparks(email)
+        response = brain.synthesize(query, [])
 
-    response = brain.synthesize(f"{prefix} {query}", [])
-    
-    return jsonify({
-        "vertex_response": response,
-        "sparks": sparks_display,
-        "role": identity
-    })
+    return jsonify({"vertex_response": response, "sparks": sparks})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
