@@ -2,14 +2,10 @@ from flask import Flask, render_template, request, jsonify
 import os
 from modules.vault import VertexVault
 from modules.ia_brain import VertexBrain
-from modules.mail_service import VertexMail
-from modules.invites import VertexInvites
 
 app = Flask(__name__)
 vault = VertexVault()
 brain = VertexBrain()
-mail_bot = VertexMail()
-inviter = VertexInvites()
 
 @app.route('/')
 def index():
@@ -18,33 +14,29 @@ def index():
 @app.route('/ask', methods=['POST'])
 def ask():
     data = request.json
-    email = data.get("email", "").lower()
+    email = data.get("email", "").lower().strip()
     hwid = data.get("hwid", "")
     query = data.get("query", "")
+
     identity = vault.check_identity(email, hwid)
 
     if identity == "COMMANDER":
-        response = brain.synthesize(f"[ORDEN_ALTA] {query}", [])
+        # Aquí Vertex sabe que habla contigo, el tono es de "socio en el crimen"
+        response = brain.synthesize(query, [])
         sparks = "INFINITOS"
     elif identity == "IMPOSTOR":
-        return jsonify({"vertex_response": "⚠️ ALERTA: Hardware no autorizado.", "sparks": 0})
+        return jsonify({
+            "vertex_response": "Buen intento. Pero mi lealtad no se hackea con un email robado. Largo de aquí.",
+            "sparks": 0
+        })
     else:
-        vault.add_user(email) # Aseguramos que el usuario exista
+        # Usuario normal: Útil pero con ese toque de "te estoy vigilando"
         if not vault.use_spark(email):
-            return jsonify({"vertex_response": "Energía agotada.", "sparks": 0})
+            return jsonify({"vertex_response": "Te has quedado sin Sparks. La soberanía no es gratis, vuelve cuando tengas energía.", "sparks": 0})
         response = brain.synthesize(query, [])
         sparks = vault.get_sparks(email)
 
     return jsonify({"vertex_response": response, "sparks": sparks})
-
-@app.route('/request_access', methods=['POST'])
-def request_access():
-    email = request.json.get("email", "").lower()
-    if inviter.request_access(email):
-        mail_bot.send_notification(email) # Te avisa a ti
-        mail_bot.send_referral(email)     # Lo seduce a él
-        return jsonify({"status": "Solicitud procesada. Revisa tu correo."})
-    return jsonify({"status": "Ya estás registrado en el sistema."})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
