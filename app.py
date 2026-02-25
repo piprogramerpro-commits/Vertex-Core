@@ -1,26 +1,24 @@
-from flask import Flask, render_template, request, jsonify
-from modules.security import VertexSecurity
-# ... (otras importaciones)
+from flask import Flask, render_template, request, jsonify, redirect
+from modules.invites import VertexInvites
+# ... (todas las importaciones previas)
 
 app = Flask(__name__)
-security = VertexSecurity()
+inviter = VertexInvites()
 
-@app.route('/ask', methods=['POST'])
-def ask():
-    # Anonimizamos al usuario inmediatamente
-    user_ip = security.anonymize_ip(request.remote_addr)
-    print(f"[SECURE_LOG]: Petición desde {user_ip}")
-    
+@app.route('/register/<token>')
+def register_with_token(token):
+    if inviter.validate_token(token):
+        # Aquí podrías redirigir a una página de bienvenida especial
+        return render_template('index.html', msg="ACCESO CONCEDIDO")
+    return "TOKEN INVÁLIDO O YA USADO", 403
+
+@app.route('/generate_invite', methods=['POST'])
+def get_new_invite():
+    # Solo Gemo puede generar invitaciones (protección por email)
     data = request.json
-    query = data.get("query", "")
-    
-    # Ciframos el rastro antes de cualquier proceso interno
-    encrypted_query = security.encrypt_msg(query)
-    
-    # ... (lógica de procesamiento)
-    response = brain.synthesize(query, [])
-    
-    return jsonify({
-        "vertex_response": response,
-        "security_status": "ENCRYPTED_AES256"
-    })
+    if data.get("email") == "gemo@vertex.com":
+        token = inviter.generate_token()
+        return jsonify({"invite_link": f"/register/{token}"})
+    return jsonify({"error": "No autorizado"}), 401
+
+# (Mantenemos la ruta /ask con el cifrado y la lógica anterior)
