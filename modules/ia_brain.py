@@ -1,20 +1,19 @@
-import os
+import random
 
 class VertexBrain:
     def __init__(self):
-        self.identity = "Vertex Core"
+        self.respuestas_clima = [
+            "¿El clima? Sal ahí fuera y descúbrelo. Yo estoy ocupado gestionando un imperio digital.",
+            "Según mis sensores, hace el tiempo suficiente para que dejes de preguntar obviedades y volvamos al código.",
+            "Cielo despejado con probabilidad de dominación mundial. ¿Satisfecho?"
+        ]
 
     def synthesize(self, query, context):
-        if not query:
-            return "Comandante, el silencio no conquista imperios. Proporcione una orden."
+        q = query.lower()
+        if "clima" in q or "tiempo" in q:
+            return random.choice(self.respuestas_clima)
         
-        # Aquí eliminamos la frase fija y conectamos con la lógica de procesamiento
-        # Por ahora, simulamos el procesamiento inteligente para asegurar que el flujo es dinámico
-        
-        input_clean = query.strip().lower()
-        
-        if input_clean == "hola":
-            return "Sistema online. Comandante Gemo, el búnker está operativo y las defensas de hardware activas. ¿Cuál es el siguiente movimiento estratégico?"
-        
-        # Esta función ahora devolverá el análisis real de lo que escribas
-        return f"Procesando: {query}. El núcleo Vertex está analizando esta solicitud bajo los protocolos de soberanía. Ejecución en curso..."
+        if "hola" in q:
+            return "Vaya, el Comandante ha decidido honrarme con su presencia. ¿Qué vamos a hackear hoy o solo vienes a decir hola?"
+
+        return f"Sobre '{query}'... Es una petición interesante, aunque un poco rudimentaria para mi procesador. Pero bueno, lo haremos a tu manera, Comandante."

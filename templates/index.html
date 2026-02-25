@@ -2,130 +2,95 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Vertex Core | Gates</title>
+    <title>Vertex Core</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --gold: #d4af37; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Overlay de Registro */
-        #registration-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5,5,5,0.99); z-index: 1000; display: flex;
-            align-items: center; justify-content: center; flex-direction: column;
-            transition: opacity 0.5s ease;
-        }
-        .reg-card {
-            border: 1px solid var(--gold); padding: 50px; background: #000;
-            text-align: center; border-radius: 10px; width: 400px;
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
-        }
-        
-        /* Main UI */
-        #main-ui { display: flex; height: 100vh; visibility: hidden; opacity: 0; transition: 0.8s; }
+        /* Estética de Bocadillos */
+        #chat { flex: 1; overflow-y: auto; padding: 40px 10%; display: flex; flex-direction: column; gap: 15px; }
+        .bubble { max-width: 75%; padding: 12px 18px; border-radius: 15px; font-size: 14px; line-height: 1.4; position: relative; }
+        .vertex-msg { background: #111; border: 1px solid var(--gold); align-self: flex-start; color: #eee; border-bottom-left-radius: 2px; }
+        .user-msg { background: var(--gold); color: black; align-self: flex-end; font-weight: bold; border-bottom-right-radius: 2px; }
+
         #sidebar { width: 280px; background: #0a0a0a; border-right: 1px solid #222; padding: 25px; }
-        #chat-area { flex: 1; display: flex; flex-direction: column; }
-        #chat { flex: 1; overflow-y: auto; padding: 40px 15%; }
+        .input-bar { background: #111; border: 1px solid #333; margin: 20px 10%; padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; }
+        input { background: transparent; border: none; color: white; flex: 1; outline: none; }
         
-        .input-bar { background: #111; border: 1px solid #333; margin: 20px 10%; padding: 15px; border-radius: 8px; display: flex; gap: 15px; align-items: center; }
-        input { background: transparent; border: none; color: white; flex: 1; outline: none; font-size: 15px; }
-        .gold-btn { background: var(--gold); border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 5px; color: black; transition: 0.3s; }
-        .gold-btn:hover { background: #fff; }
-        .quote { color: var(--gold); font-family: monospace; margin-bottom: 25px; font-size: 16px; font-style: italic; }
-        .icon-btn { color: #555; cursor: pointer; font-size: 18px; }
-        .icon-btn:hover { color: var(--gold); }
+        #registration-overlay { position: fixed; inset: 0; background: #050505; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .reg-card { border: 1px solid var(--gold); padding: 40px; background: #000; text-align: center; border-radius: 8px; width: 320px; }
     </style>
 </head>
 <body>
 
     <div id="registration-overlay">
         <div class="reg-card">
-            <h1 style="color:var(--gold); letter-spacing: 8px; margin-bottom: 5px;">VERTEX</h1>
-            <p style="font-size: 10px; color: #444; margin-bottom: 30px;">SOVEREIGN CONTROL UNIT</p>
-            <div class="quote">"Discipline is everything."</div>
-            <input type="text" id="reg-email" placeholder="Introduce tu ID o Email" 
-                   style="width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; margin-bottom: 20px; text-align: center; border-radius: 5px;">
-            <button class="gold-btn" onclick="solicitarAcceso()">ACCEDER AL NÚCLEO</button>
-            <p id="reg-status" style="font-size: 12px; margin-top: 20px; color: #666; font-family: monospace;"></p>
+            <h1 style="color:var(--gold); letter-spacing: 5px;">VERTEX</h1>
+            <p style="color:var(--gold); font-size: 12px; font-family: monospace;">"Discipline is everything."</p>
+            <input type="text" id="reg-email" placeholder="Introduce tu Email" style="width:100%; background:#111; border:1px solid #333; color:white; padding:10px; margin:20px 0; text-align:center;">
+            <button onclick="solicitarAcceso()" style="background:var(--gold); border:none; padding:10px; width:100%; font-weight:bold; cursor:pointer;">ACCEDER</button>
+            <p id="reg-status" style="font-size: 11px; margin-top: 15px; color: #555;"></p>
         </div>
     </div>
 
-    <div id="main-ui">
-        <div id="sidebar">
-            <h2 style="color:var(--gold); margin-bottom: 40px;">DASHBOARD</h2>
-            <div style="font-size: 11px; color: #444;">ID SESIÓN:</div>
-            <div id="user-info" style="font-size: 13px; color: var(--gold); margin-bottom: 20px;">---</div>
-            <div style="font-size: 11px; color: #444;">ENERGÍA DISPONIBLE:</div>
-            <div style="font-size: 18px; color: var(--gold); font-weight: bold;"><span id="spark-count">---</span> SPARKS</div>
-        </div>
-        <div id="chat-area">
-            <div id="chat"></div>
-            <div class="input-bar">
-                <label for="file-up"><i class="fas fa-paperclip icon-btn"></i></label>
-                <input type="file" id="file-up" style="display:none">
-                <i class="fas fa-microphone icon-btn" onclick="startVoice()"></i>
-                <input type="text" id="user-query" placeholder="Escriba un comando, Comandante..." onkeypress="if(event.key=='Enter') ejecutar()">
-                <button onclick="ejecutar()" style="background:transparent; border:none; color:var(--gold); font-weight:bold; cursor:pointer;">EJECUTAR</button>
-            </div>
+    <div id="sidebar">
+        <h2 style="color:var(--gold)">VERTEX CORE</h2>
+        <div style="font-size: 10px; color: #444; margin-top: 20px;">SESIÓN ACTIVA:</div>
+        <div id="user-info" style="color: var(--gold); font-size: 12px;">---</div>
+        <div style="font-size: 10px; color: #444; margin-top: 20px;">SPARKS:</div>
+        <div id="spark-count" style="color: var(--gold); font-weight: bold;">---</div>
+    </div>
+
+    <div style="flex:1; display:flex; flex-direction:column;">
+        <div id="chat"></div>
+        <div class="input-bar">
+            <i class="fas fa-paperclip" style="color:#444;"></i>
+            <input type="text" id="user-query" placeholder="Escriba una orden..." onkeypress="if(event.key=='Enter') ejecutar()">
+            <button onclick="ejecutar()" style="background:transparent; border:none; color:var(--gold); font-weight:bold; cursor:pointer;">EJECUTAR</button>
         </div>
     </div>
 
     <script>
         const hwid = "d16e372dd0bbff1e4806e23e31d82a2ea80095eaeb80754b3d2deea767ee3cb6";
-        let activeEmail = "";
+        let activeMail = "";
 
         async function solicitarAcceso() {
-            activeEmail = document.getElementById('reg-email').value;
-            const status = document.getElementById('reg-status');
-            
-            status.innerText = "> VALIDANDO CREDENCIALES...";
-            
+            activeMail = document.getElementById('reg-email').value;
             const res = await fetch('/check_auth', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email: activeEmail, hwid: hwid})
+                body: JSON.stringify({email: activeMail, hwid: hwid})
             });
-            const data = await res.json();
-
-            if (data.access === "COMMANDER" || data.access === "USER_APPROVED") {
-                status.style.color = "var(--gold)";
-                status.innerText = "> ACCESO CONCEDIDO. BIENVENIDO.";
-                setTimeout(() => {
-                    document.getElementById('registration-overlay').style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById('registration-overlay').style.display = 'none';
-                        document.getElementById('main-ui').style.visibility = 'visible';
-                        document.getElementById('main-ui').style.opacity = '1';
-                        document.getElementById('user-info').innerText = activeEmail;
-                        document.getElementById('spark-count').innerText = data.sparks;
-                    }, 500);
-                }, 800);
+            const d = await res.json();
+            if(d.access === "COMMANDER" || d.access === "USER_APPROVED") {
+                document.getElementById('registration-overlay').style.display = 'none';
+                document.getElementById('user-info').innerText = activeMail;
+                document.getElementById('spark-count').innerText = d.sparks;
             } else {
-                status.innerText = "> SOLICITUD ENVIADA. ESPERANDO APROBACIÓN...";
+                document.getElementById('reg-status').innerText = "SOLICITUD ENVIADA. ESPERA APROBACIÓN.";
             }
         }
 
         async function ejecutar() {
             const q = document.getElementById('user-query');
             if(!q.value) return;
+            
+            // Añadir bocadillo de usuario
+            document.getElementById('chat').innerHTML += `<div class="bubble user-msg">${q.value}</div>`;
+            
             const res = await fetch('/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({query: q.value, email: activeEmail, hwid: hwid})
+                body: JSON.stringify({query: q.value, email: activeMail, hwid: hwid})
             });
             const d = await res.json();
-            document.getElementById('chat').innerHTML += `<div style="border-left: 2px solid var(--gold); padding-left:20px; margin-bottom:30px;">${marked.parse(d.vertex_response)}</div>`;
-            document.getElementById('spark-count').innerText = d.sparks;
+            
+            // Añadir bocadillo de Vertex
+            document.getElementById('chat').innerHTML += `<div class="bubble vertex-msg">${d.vertex_response}</div>`;
             q.value = '';
             document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
-        }
-
-        function startVoice() {
-            const r = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            r.lang = 'es-ES';
-            r.onresult = (e) => { document.getElementById('user-query').value = e.results[0][0].transcript; };
-            r.start();
         }
     </script>
 </body>
