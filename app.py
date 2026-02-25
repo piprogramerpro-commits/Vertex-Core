@@ -18,24 +18,25 @@ def ask():
     try:
         data = request.json
         query = data.get("query", "")
-        user_email = data.get("email", "anon")
+        email = data.get("email", "anon")
         
-        # 1. Obtener contexto real
+        # Le pasamos la info al Hub para buscar el clima real
         context = hub.get_context(query)
         
-        # 2. SINTETIZAR (Esto ahora llamará a la lógica nueva)
+        # Sintetizamos la respuesta
         vertex_res = brain.synthesize(query, context)
         
-        # 3. SPARKS
-        current_sparks = mem.get_data(f"sparks_{user_email}")
+        sparks = mem.get_data(f"sparks_{email}")
         
         return jsonify({
             "vertex_response": vertex_res,
-            "sparks_remaining": current_sparks if current_sparks else 0
+            "sparks_remaining": sparks if sparks else 0
         })
     except Exception as e:
-        return jsonify({"vertex_response": f"Error crítico: {str(e)}"})
+        return jsonify({"vertex_response": f"Error: {str(e)}"})
 
 if __name__ == '__main__':
+    # Esto es lo que usaremos para detectar que estamos en Railway y NO en la Raspberry
+    os.environ["ENV_TYPE"] = "RAILWAY" 
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
