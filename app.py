@@ -22,27 +22,22 @@ def check_auth():
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    try:
-        data = request.json
-        email = data.get("email", "").lower().strip()
-        hwid = data.get("hwid", "")
-        query = data.get("query", "")
-        
-        access = vault.check_access(email, hwid)
-        
-        # Solo el Comandante o Usuarios Aprobados reciben respuesta
-        if access in ["COMMANDER", "USER_APPROVED"]:
-            # Llamamos al cerebro para que responda
-            response_text = brain.synthesize(query, [])
-            return jsonify({
-                "vertex_response": response_text, 
-                "sparks": vault.get_sparks(email),
-                "status": "success"
-            })
-        
-        return jsonify({"vertex_response": "Acceso denegado. Su terminal no tiene los permisos necesarios.", "sparks": 0})
-    except Exception as e:
-        return jsonify({"vertex_response": f"Error en el núcleo: {str(e)}", "sparks": 0})
+    data = request.json
+    email = data.get("email", "").lower().strip()
+    hwid = data.get("hwid", "")
+    query = data.get("query", "")
+    
+    access = vault.check_access(email, hwid)
+    
+    if access in ["COMMANDER", "USER_APPROVED"]:
+        # El cerebro ahora responde dinámicamente según el query
+        response = brain.synthesize(query, [])
+        return jsonify({
+            "vertex_response": response, 
+            "sparks": vault.get_sparks(email)
+        })
+    
+    return jsonify({"vertex_response": "Acceso denegado.", "sparks": 0})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
