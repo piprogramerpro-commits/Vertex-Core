@@ -1,5 +1,8 @@
 flask
 requests
-redis
 groq
+PyPDF2
+gTTS
+Pillow
+duckduckgo-search
 gunicorn
