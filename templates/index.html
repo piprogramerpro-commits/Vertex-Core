@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>VERTEX CORE AI - SOCIO PANEL</title>
+    <style>
+        :root { --cyan: #00f2ff; --bg: #0a0b10; --card: #161b22; --text: #e6edf3; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Barra Lateral Futurista */
+        .sidebar { width: 260px; background: var(--card); border-right: 1px solid #30363d; display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+        .logo { color: var(--cyan); font-size: 22px; font-weight: bold; margin-bottom: 30px; letter-spacing: 2px; text-align: center; }
+        .nav-item { padding: 12px 15px; margin: 5px 0; border-radius: 8px; cursor: pointer; color: #8b949e; transition: 0.3s; border-left: 3px solid transparent; }
+        .nav-item:hover, .nav-item.active { background: #21262d; color: var(--cyan); border-left: 3px solid var(--cyan); }
+
+        /* Contenedor de Chat Principal */
+        .main-container { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+        .chat-header { padding: 15px 30px; border-bottom: 1px solid #30363d; font-size: 14px; color: #8b949e; }
+        .chat-messages { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        .message { max-width: 80%; padding: 15px; border-radius: 12px; line-height: 1.5; }
+        .ai-msg { background: #21262d; align-self: flex-start; border-bottom-left-radius: 2px; border-left: 2px solid var(--cyan); }
+        .user-msg { background: var(--cyan); color: black; align-self: flex-end; border-bottom-right-radius: 2px; }
+
+        /* Input Area */
+        .input-box { padding: 20px 40px; background: var(--bg); }
+        .input-wrapper { display: flex; background: var(--card); border: 1px solid #30363d; border-radius: 10px; padding: 10px; align-items: center; }
+        input { flex-grow: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; font-size: 16px; }
+        button { background: var(--cyan); border: none; border-radius: 6px; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+
+        /* Frase del Socio */
+        .footer-quote { position: absolute; bottom: 5px; width: 100%; text-align: center; color: #484f58; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">VERTEX CORE</div>
+        <div class="nav-item active">🏠 Panel Principal</div>
+        <div class="nav-item">🛡️ Configuración</div>
+        <div class="nav-item">📜 Conversaciones</div>
+        <div class="nav-item">🔑 Gestión APIs</div>
+        <div style="margin-top: auto;" class="nav-item">👤 Socio: piprogramerpro</div>
+    </div>
+    <div class="main-container">
+        <div class="chat-header">Modelo Híbrido: Groq + Hugging Face Activo</div>
+        <div class="chat-messages" id="chat">
+            <div class="message ai-msg">Socio, el sistema está en línea. Esperando tus órdenes para el próximo botín.</div>
+        </div>
+        <div class="input-box">
+            <div class="input-wrapper">
+                <input type="text" placeholder="Envía un mensaje a Vertex...">
+                <button>ENVIAR</button>
+            </div>
+        </div>
+        <div class="footer-quote">Vertex Core v2.1 | "Discipline is everything." | Derechos Reservados 2026</div>
+    </div>
+</body>
+</html>
