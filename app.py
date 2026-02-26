@@ -1,19 +1,18 @@
 from flask import Flask, render_template, request, jsonify
-import os
+import os, requests
 from groq import Groq
-from models import init_user_db
-from ai_backup import chat_backup
 
 app = Flask(__name__)
-init_user_db()
 
-# Carga de Configuración de Socio
+# Configuración de Motores
 GROQ_KEY = os.environ.get("GROQ_API_KEY")
-client = Groq(api_key=GROQ_KEY) if GROQ_KEY else None
-ADMIN_EMAIL = "piprogramerpro@gmail.com"
+HF_TOKEN = os.environ.get("HF_TOKEN")
+HF_MODEL = os.environ.get("HF_MODEL", "mistralai/Mistral-7B-Instruct-v0.2")
 
-# Estado de la cuenta (En memoria para este test)
-session_data = {"sparks": 20, "version": "v2.3.2-Final", "status": "ONLINE"}
+client = Groq(api_key=GROQ_KEY) if GROQ_KEY else None
+
+# Estado del Socio
+user_stats = {"sparks": 20, "is_logged": False}
 
 @app.route('/')
 def index():
@@ -21,52 +20,38 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    data = request.json
-    mensaje = data.get('message', '')
+    if not user_stats["is_logged"]:
+        return jsonify({"response": "ACCESO DENEGADO. Registre su firma de socio primero."})
+
+    mensaje = request.json.get('message', '')
     
-    if session_data["sparks"] <= 0:
-        return jsonify({"status": "error", "response": "Socio, sistema bloqueado. Insuficientes Sparks."})
-
-    respuesta = ""
+    # 1. Intento con GROQ (Principal)
     try:
-        # LLAMADA REAL AL NÚCLEO (Sin respuestas predeterminadas)
         if client:
-            completion = client.chat.completions.create(
+            res = client.chat.completions.create(
                 model="llama3-70b-8192",
-                messages=[
-                    {"role": "system", "content": "Eres Vertex Core AI. Profesional, serio, directo. Usa 'socio'. Responde con lógica técnica avanzada a cualquier tema (moral, mates, economía)."},
-                    {"role": "user", "content": mensaje}
-                ],
-                temperature=0.5
+                messages=[{"role": "system", "content": "Eres Vertex Core AI. Profesional y serio. Responde al dilema moral con lógica de Nash y justicia distributiva."},
+                          {"role": "user", "content": mensaje}]
             )
-            respuesta = completion.choices[0].message.content
-        else:
-            respuesta = chat_backup(mensaje)
+            return jsonify({"response": res.choices[0].message.content, "sparks": user_stats["sparks"] + 5})
+    except:
+        pass
 
-        # Lógica de Recompensa de Sparks (Basada en longitud/complejidad del input)
-        if len(mensaje) > 150:
-            recompensa = 5
-            session_data["sparks"] += recompensa
-            msg_sparks = f"\n\n[SISTEMA]: Reto complejo detectado. +{recompensa} Sparks abonados."
-        else:
-            session_data["sparks"] -= 1
-            msg_sparks = ""
-
-        return jsonify({
-            "status": "success", 
-            "response": respuesta + msg_sparks, 
-            "sparks": session_data["sparks"]
-        })
-
+    # 2. Intento con HUGGING FACE (Respaldo Real)
+    try:
+        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+        api_url = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
+        payload = {"inputs": f"<s>[INST] {mensaje} [/INST]", "parameters": {"max_new_tokens": 500}}
+        response = requests.post(api_url, headers=headers, json=payload, timeout=10)
+        output = response.json()
+        return jsonify({"response": output[0]['generated_text'].split("[/INST]")[1], "sparks": user_stats["sparks"] + 5})
     except Exception as e:
-        # Si todo falla, el backup procesa el mensaje real
-        res_backup = chat_backup(mensaje)
-        return jsonify({"status": "success", "response": f"[MODO EMERGENCIA]: {res_backup}"})
+        return jsonify({"response": f"ERROR CRÍTICO: Motores fuera de línea. Verifique Tokens. {str(e)}"})
 
-@app.route('/info')
-def info():
-    return jsonify(session_data)
+@app.route('/auth', methods=['POST'])
+def auth():
+    user_stats["is_logged"] = True
+    return jsonify({"status": "success"})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=os.environ.get("PORT", 5000))
