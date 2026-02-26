@@ -2,95 +2,121 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VERTEX CORE AI</title>
+    <title>VERTEX CORE AI | NÚCLEO</title>
     <style>
-        :root { --cyan: #00f2ff; --bg: #0b0e14; --card: #161b22; --border: #30363d; }
-        body { background: var(--bg); color: #c9d1d9; font-family: sans-serif; margin: 0; display: flex; height: 100vh; }
-        
-        /* Dashboard de Registro (Lo primero que salta) */
-        #auth-layer { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; justify-content: center; align-items: center; }
-        .box { background: var(--card); padding: 30px; border: 1px solid var(--border); border-radius: 10px; text-align: center; width: 300px; }
-        
-        /* Interfaz Principal */
+        :root { --cyan: #00f2ff; --bg: #0b0e14; --card: rgba(22, 27, 34, 0.8); --border: #30363d; --glass: rgba(13, 17, 23, 0.7); }
+        body { background: #05070a; color: #c9d1d9; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Dashboard de Registro */
+        #auth-layer { position: fixed; inset: 0; background: radial-gradient(circle, #0b0e14 0%, #05070a 100%); z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        .auth-card { background: var(--card); padding: 40px; border: 1px solid var(--border); border-radius: 15px; width: 350px; backdrop-filter: blur(10px); text-align: center; box-shadow: 0 0 30px rgba(0,242,255,0.05); }
+
+        /* Dashboard Principal (Fiel a la Imagen) */
         #main-ui { display: none; width: 100%; height: 100vh; flex-direction: row; }
-        .sidebar { width: 250px; background: var(--card); border-right: 1px solid var(--border); padding: 20px; }
-        .content { flex-grow: 1; padding: 30px; display: flex; flex-direction: column; }
-        #chat-window { flex-grow: 1; background: #0d1117; border-radius: 8px; padding: 20px; overflow-y: auto; border: 1px solid var(--border); margin-bottom: 20px; }
         
-        .nav-item { padding: 12px; cursor: pointer; color: #8b949e; border-radius: 6px; margin-bottom: 5px; }
-        .nav-item:hover { background: #21262d; color: var(--cyan); }
-        .active { background: #21262d; color: var(--cyan); border-left: 3px solid var(--cyan); }
+        /* Sidebar Izquierda (Zona de Mando) */
+        .sidebar { width: 280px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; backdrop-filter: blur(10px); }
+        .logo-area { padding: 30px; font-size: 24px; font-weight: bold; color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,242,255,0.3); }
+        .nav-item { padding: 12px 30px; cursor: pointer; color: #8b949e; display: flex; align-items: center; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { background: rgba(0,242,255,0.1); color: var(--cyan); border-left: 4px solid var(--cyan); }
+
+        /* Lista de Conversaciones (Como en la imagen) */
+        .conv-list { flex-grow: 1; padding: 20px; overflow-y: auto; border-top: 1px solid var(--border); }
+        .conv-title { font-size: 11px; color: #484f58; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
+        .conv-item { padding: 10px; border-radius: 8px; font-size: 13px; color: #8b949e; cursor: pointer; margin-bottom: 5px; border: 1px solid transparent; }
+        .conv-item:hover { border-color: var(--border); background: #161b22; color: #fff; }
+
+        /* Área de Chat */
+        .chat-container { flex-grow: 1; display: flex; flex-direction: column; background: #0d1117; position: relative; }
+        #chat-window { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         
-        .btn { background: var(--cyan); color: black; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
-        input { width: 100%; padding: 12px; background: #0d1117; border: 1px solid var(--border); color: white; border-radius: 6px; margin-bottom: 10px; box-sizing: border-box; }
+        /* Bocadillos de Chat (Mejorados) */
+        .bubble { max-width: 70%; padding: 15px 20px; border-radius: 15px; line-height: 1.6; font-size: 15px; position: relative; }
+        .ai-bubble { align-self: flex-start; background: #21262d; border: 1px solid var(--cyan); color: #fff; border-bottom-left-radius: 2px; box-shadow: 0 4px 15px rgba(0,242,255,0.05); }
+        .user-bubble { align-self: flex-end; background: #f0f6fc; color: #000; border-bottom-right-radius: 2px; }
+
+        /* Zona de Escritura (Moderna) */
+        .input-area { padding: 30px 40px; background: #0d1117; border-top: 1px solid var(--border); }
+        .input-wrapper { display: flex; background: #161b22; border: 1px solid var(--border); border-radius: 12px; padding: 10px 15px; align-items: center; gap: 15px; }
+        input { flex-grow: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
+        .send-btn { background: var(--cyan); color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .send-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--cyan); }
+
+        .footer { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 11px; color: #484f58; }
     </style>
 </head>
 <body>
 
     <div id="auth-layer">
-        <div class="box">
-            <h2 style="color:var(--cyan)">REGISTRO SOCIO</h2>
-            <input type="text" id="u" placeholder="Nombre de Socio">
-            <input type="email" id="e" placeholder="Email">
-            <button class="btn" onclick="login()">VALIDAR IDENTIDAD</button>
+        <div class="auth-card">
+            <h2 style="color:var(--cyan); margin-bottom:5px;">REGISTRO SOCIO</h2>
+            <p style="font-size:11px; color:#8b949e; margin-bottom:25px;">SISTEMA DE GESTIÓN VERTEX v2.4</p>
+            <input type="text" id="reg-name" placeholder="Nombre de Socio" style="width:100%; padding:12px; margin-bottom:10px; background:#0d1117; border:1px solid var(--border); color:white; border-radius:6px;">
+            <input type="email" id="reg-email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:20px; background:#0d1117; border:1px solid var(--border); color:white; border-radius:6px;">
+            <button class="send-btn" style="width:100%;" onclick="login()">VALIDAR IDENTIDAD</button>
         </div>
     </div>
 
     <div id="main-ui">
         <div class="sidebar">
-            <h2 style="color:var(--cyan)">VERTEX</h2>
-            <div class="nav-item active" onclick="show('chat')">🏠 Panel Principal</div>
-            <div class="nav-item" onclick="show('conf')">⚙️ Configuración</div>
-            <div class="nav-item" onclick="show('sec')">🛡️ Seguridad</div>
-            <div style="margin-top:auto; color:var(--cyan)">SPARKS: <span id="spk">20</span></div>
+            <div class="logo-area">VERTEX CORE</div>
+            <div class="nav-item active">Panel Principal</div>
+            <div class="nav-item">Configuración</div>
+            <div class="nav-item">Seguridad</div>
+            
+            <div class="conv-list">
+                <div class="conv-title">Conversaciones Recientes</div>
+                <div class="conv-item">● Análisis de Nash... <span style="float:right; opacity:0.5">Hoy</span></div>
+                <div class="conv-item">● Justicia Distributiva... <span style="float:right; opacity:0.5">25 Feb</span></div>
+                <div class="conv-item">● Dilema Moral... <span style="float:right; opacity:0.5">24 Feb</span></div>
+            </div>
+            
+            <div style="padding:20px; border-top:1px solid var(--border);">
+                <span style="color:var(--cyan); font-size:12px;">SPARKS: <b id="spk">20</b></span>
+            </div>
         </div>
-        <div class="content">
-            <div id="chat" class="section">
-                <div id="chat-window"></div>
-                <div style="display:flex; gap:10px">
-                    <input type="text" id="msg" placeholder="Consulta al núcleo...">
-                    <button class="btn" style="width:100px" onclick="send()">ENVIAR</button>
+
+        <div class="chat-container">
+            <div id="chat-window">
+                <div class="bubble ai-bubble">Sistema iniciado. Identificación confirmada. ¿En qué puedo asistirte hoy, socio?</div>
+            </div>
+            
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input type="text" id="msg-input" placeholder="Escribe tu directiva aquí...">
+                    <button class="send-btn" onclick="enviar()">ENVIAR</button>
                 </div>
             </div>
-            <div id="conf" class="section" style="display:none">
-                <h2>CONFIGURACIÓN</h2>
-                <p>Versión: v2.4.0-Stable</p>
-                <p>Conexión: Cifrada (SSL)</p>
-                <button class="btn" style="background:#ff4d4d; color:white" onclick="location.reload()">QUITAR CUENTA</button>
-            </div>
-            <div id="sec" class="section" style="display:none">
-                <h2>SEGURIDAD</h2>
-                <p>Capa 1: AES-256 Activa</p>
-                <p>Capa 2: SHA-256 Activa</p>
-            </div>
+            <div class="footer">Vertex Core v2.4 | "Discipline is everything." | 2026</div>
         </div>
     </div>
 
     <script>
         function login() {
-            fetch('/auth', {method:'POST'}).then(() => {
-                document.getElementById('auth-layer').style.display = 'none';
-                document.getElementById('main-ui').style.display = 'flex';
-            });
+            document.getElementById('auth-layer').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
         }
-        function show(id) {
-            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-        }
-        async function send() {
-            const m = document.getElementById('msg');
-            const cw = document.getElementById('chat-window');
-            cw.innerHTML += `<p><b>TÚ:</b> ${m.value}</p>`;
+
+        async function enviar() {
+            const input = document.getElementById('msg-input');
+            const chat = document.getElementById('chat-window');
+            if(!input.value) return;
+
+            const text = input.value;
+            chat.innerHTML += `<div class="bubble user-bubble">${text}</div>`;
+            input.value = '';
+            chat.scrollTop = chat.scrollHeight;
+
             const res = await fetch('/chat', {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({message: m.value})
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: text})
             });
-            const d = await res.json();
-            cw.innerHTML += `<p style="color:var(--cyan)"><b>VERTEX:</b> ${d.response}</p>`;
-            if(d.sparks) document.getElementById('spk').innerText = d.sparks;
-            m.value = '';
-            cw.scrollTop = cw.scrollHeight;
+            const data = await res.json();
+            
+            chat.innerHTML += `<div class="bubble ai-bubble"><b>VERTEX:</b><br>${data.response}</div>`;
+            document.getElementById('spk').innerText = data.sparks;
+            chat.scrollTop = chat.scrollHeight;
         }
     </script>
 </body>
