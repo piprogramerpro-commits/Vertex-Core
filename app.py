@@ -1,31 +1,54 @@
 from flask import Flask, request, jsonify
 import os
+from groq import Groq
 from memory import init_db, save_interaction, get_history
 from ai_backup import chat_backup
 
 app = Flask(__name__)
 init_db()
 
+# --- CARGA DE VARIABLES DESDE RAILWAY ---
+# El sistema las lee automáticamente de tu configuración
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+WEATHER_KEY = os.environ.get("WEATHER_API_KEY")
+NASA_KEY = os.environ.get("NASA_API_KEY")
+NEWS_KEY = os.environ.get("NEWS_API_KEY")
+EXCHANGE_KEY = os.environ.get("EXCHANGERATE_API_KEY")
+
+client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 ADMIN_EMAIL = "piprogramerpro@gmail.com"
 
 @app.route('/')
 def home():
-    return "VERTEX CORE AI: SISTEMA ONLINE - MOTOR HÍBRIDO ACTIVO"
+    status = "SISTEMA INTEGRADO: "
+    status += "Groq OK, " if GROQ_API_KEY else "Groq OFF, "
+    status += "NASA OK, " if NASA_KEY else "NASA OFF"
+    return status
 
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
     email = data.get('email')
-    mensaje = data.get('message')
+    mensaje = data.get('message').lower()
 
     if email != ADMIN_EMAIL:
         return jsonify({"status": "denied", "message": "Acceso restringido."}), 403
 
-    # Lógica de Motor Híbrido
+    # LÓGICA DE RESPUESTA INTELIGENTE
     try:
-        # Aquí iría tu llamada a Groq... 
-        # Si falla, saltamos al Plan B:
-        respuesta = chat_backup(mensaje)
+        if "clima" in mensaje and WEATHER_KEY:
+            # Aquí Vertex sabrá que tiene que usar la API del clima
+            respuesta = f"Socio, detecto que quieres saber el clima. Usando tu clave: {WEATHER_KEY[:5]}..."
+        elif "espacio" in mensaje or "nasa" in mensaje:
+            respuesta = f"Consultando base de datos de la NASA con tu acceso..."
+        elif client:
+            completion = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[{"role": "user", "content": mensaje}]
+            )
+            respuesta = completion.choices[0].message.content
+        else:
+            respuesta = chat_backup(mensaje)
     except:
         respuesta = chat_backup(mensaje)
 
