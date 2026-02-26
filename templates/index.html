@@ -2,45 +2,50 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VERTEX CORE AI | NÚCLEO</title>
+    <title>VERTEX CORE AI | NÚCLEO v2.4</title>
     <style>
-        :root { --cyan: #00f2ff; --bg: #0b0e14; --card: rgba(22, 27, 34, 0.8); --border: #30363d; --glass: rgba(13, 17, 23, 0.7); }
+        :root { --cyan: #00f2ff; --bg: #0b0e14; --card: rgba(22, 27, 34, 0.85); --border: #30363d; --glass: rgba(13, 17, 23, 0.7); --msg-user: rgba(240, 246, 252, 0.9); --msg-ai: rgba(33, 38, 45, 0.8); }
         body { background: #05070a; color: #c9d1d9; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Dashboard de Registro */
+        /* Dashboard de Registro (Salta lo Primero) */
         #auth-layer { position: fixed; inset: 0; background: radial-gradient(circle, #0b0e14 0%, #05070a 100%); z-index: 1000; display: flex; justify-content: center; align-items: center; }
         .auth-card { background: var(--card); padding: 40px; border: 1px solid var(--border); border-radius: 15px; width: 350px; backdrop-filter: blur(10px); text-align: center; box-shadow: 0 0 30px rgba(0,242,255,0.05); }
 
-        /* Dashboard Principal (Fiel a la Imagen) */
+        /* Dashboard Principal (Fiel a la Imagen Conceptual) */
         #main-ui { display: none; width: 100%; height: 100vh; flex-direction: row; }
         
-        /* Sidebar Izquierda (Zona de Mando) */
-        .sidebar { width: 280px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; backdrop-filter: blur(10px); }
+        /* Sidebar Izquierda (Zona de Mando con espacio extra) */
+        .sidebar { width: 300px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; backdrop-filter: blur(10px); padding: 10px 0; }
         .logo-area { padding: 30px; font-size: 24px; font-weight: bold; color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,242,255,0.3); }
-        .nav-item { padding: 12px 30px; cursor: pointer; color: #8b949e; display: flex; align-items: center; transition: 0.3s; }
-        .nav-item:hover, .nav-item.active { background: rgba(0,242,255,0.1); color: var(--cyan); border-left: 4px solid var(--cyan); }
+        .nav-item { padding: 12px 30px; cursor: pointer; color: #8b949e; display: flex; align-items: center; transition: 0.3s; border-left: 4px solid transparent; }
+        .nav-item:hover, .nav-item.active { background: rgba(0,242,255,0.1); color: var(--cyan); border-left-color: var(--cyan); }
 
-        /* Lista de Conversaciones (Como en la imagen) */
+        /* Lista de Conversaciones Recientes */
         .conv-list { flex-grow: 1; padding: 20px; overflow-y: auto; border-top: 1px solid var(--border); }
         .conv-title { font-size: 11px; color: #484f58; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
-        .conv-item { padding: 10px; border-radius: 8px; font-size: 13px; color: #8b949e; cursor: pointer; margin-bottom: 5px; border: 1px solid transparent; }
+        .conv-item { padding: 10px; border-radius: 8px; font-size: 13px; color: #8b949e; cursor: pointer; margin-bottom: 5px; border: 1px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .conv-item:hover { border-color: var(--border); background: #161b22; color: #fff; }
 
-        /* Área de Chat */
+        /* Área de Chat Central */
         .chat-container { flex-grow: 1; display: flex; flex-direction: column; background: #0d1117; position: relative; }
         #chat-window { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
-        
-        /* Bocadillos de Chat (Mejorados) */
-        .bubble { max-width: 70%; padding: 15px 20px; border-radius: 15px; line-height: 1.6; font-size: 15px; position: relative; }
-        .ai-bubble { align-self: flex-start; background: #21262d; border: 1px solid var(--cyan); color: #fff; border-bottom-left-radius: 2px; box-shadow: 0 4px 15px rgba(0,242,255,0.05); }
-        .user-bubble { align-self: flex-end; background: #f0f6fc; color: #000; border-bottom-right-radius: 2px; }
+        .section { display: none; }
+        .active-section { display: flex; flex-direction: column; }
 
-        /* Zona de Escritura (Moderna) */
+        /* Bocadillos de Chat (Glassmorphism con burbujas) */
+        .bubble { max-width: 70%; padding: 15px 20px; border-radius: 15px; line-height: 1.6; font-size: 15px; position: relative; backdrop-filter: blur(5px); }
+        .ai-bubble { align-self: flex-start; background: var(--msg-ai); border: 1px solid var(--cyan); color: #fff; border-bottom-left-radius: 2px; box-shadow: 0 4px 15px rgba(0,242,255,0.05); }
+        .user-bubble { align-self: flex-end; background: var(--msg-user); color: #000; border-bottom-right-radius: 2px; }
+
+        /* Zona de Escritura (Moderna y Estilizada) */
         .input-area { padding: 30px 40px; background: #0d1117; border-top: 1px solid var(--border); }
         .input-wrapper { display: flex; background: #161b22; border: 1px solid var(--border); border-radius: 12px; padding: 10px 15px; align-items: center; gap: 15px; }
         input { flex-grow: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
-        .send-btn { background: var(--cyan); color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .send-btn { background: var(--cyan); color: #000; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .send-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--cyan); }
+
+        /* Datos de Configuración */
+        .data-card { background: #21262d; padding: 20px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 15px; }
 
         .footer { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 11px; color: #484f58; }
     </style>
@@ -50,7 +55,7 @@
     <div id="auth-layer">
         <div class="auth-card">
             <h2 style="color:var(--cyan); margin-bottom:5px;">REGISTRO SOCIO</h2>
-            <p style="font-size:11px; color:#8b949e; margin-bottom:25px;">SISTEMA DE GESTIÓN VERTEX v2.4</p>
+            <p style="font-size:11px; color:#8b949e; margin-bottom:25px;">SISTEMA DE GESTIÓN VERTEX CORE</p>
             <input type="text" id="reg-name" placeholder="Nombre de Socio" style="width:100%; padding:12px; margin-bottom:10px; background:#0d1117; border:1px solid var(--border); color:white; border-radius:6px;">
             <input type="email" id="reg-email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:20px; background:#0d1117; border:1px solid var(--border); color:white; border-radius:6px;">
             <button class="send-btn" style="width:100%;" onclick="login()">VALIDAR IDENTIDAD</button>
@@ -59,16 +64,16 @@
 
     <div id="main-ui">
         <div class="sidebar">
-            <div class="logo-area">VERTEX CORE</div>
-            <div class="nav-item active">Panel Principal</div>
-            <div class="nav-item">Configuración</div>
-            <div class="nav-item">Seguridad</div>
+            <div class="logo-area">VERTEX OS</div>
+            <div id="btn-chat" class="nav-item active" onclick="showSection('chat', 'btn-chat')">🏠 Panel Principal</div>
+            <div id="btn-conf" class="nav-item" onclick="showSection('conf', 'btn-conf')">⚙️ Configuración</div>
+            <div id="btn-sec" class="nav-item" onclick="showSection('sec', 'btn-sec')">🛡️ Seguridad</div>
             
             <div class="conv-list">
                 <div class="conv-title">Conversaciones Recientes</div>
-                <div class="conv-item">● Análisis de Nash... <span style="float:right; opacity:0.5">Hoy</span></div>
-                <div class="conv-item">● Justicia Distributiva... <span style="float:right; opacity:0.5">25 Feb</span></div>
-                <div class="conv-item">● Dilema Moral... <span style="float:right; opacity:0.5">24 Feb</span></div>
+                <div class="conv-item">● Dilema de Nash v Utility... <span style="float:right; opacity:0.5">Hoy</span></div>
+                <div class="conv-item">● BTC Exchange API Test... <span style="float:right; opacity:0.5">Hoy</span></div>
+                <div class="conv-item">● Protocolo Kaldor-Hicks... <span style="float:right; opacity:0.5">25 Feb</span></div>
             </div>
             
             <div style="padding:20px; border-top:1px solid var(--border);">
@@ -77,24 +82,49 @@
         </div>
 
         <div class="chat-container">
-            <div id="chat-window">
-                <div class="bubble ai-bubble">Sistema iniciado. Identificación confirmada. ¿En qué puedo asistirte hoy, socio?</div>
-            </div>
-            
-            <div class="input-area">
-                <div class="input-wrapper">
-                    <input type="text" id="msg-input" placeholder="Escribe tu directiva aquí...">
-                    <button class="send-btn" onclick="enviar()">ENVIAR</button>
+            <div id="chat" class="section active-section">
+                <div id="chat-window">
+                    <div class="bubble ai-bubble">Identificación confirmada. Núcleo Vertex v2.4 operativo. Esperando directivas, socio.</div>
+                </div>
+                <div class="input-area">
+                    <div class="input-wrapper">
+                        <input type="text" id="msg-input" placeholder="Ingrese directiva avanzada...">
+                        <button class="send-btn" onclick="enviar()">ENVIAR</button>
+                    </div>
                 </div>
             </div>
+
+            <div id="conf" class="section" style="padding:40px">
+                <h2 style="color:var(--cyan)">MÓDULOS DEL NÚCLEO</h2>
+                <div class="data-card">Groq Llama 3 70B: ONLINE</div>
+                <div class="data-card">NASA Data Sync: ONLINE</div>
+                <div class="data-card">Base de Datos: vertex_memory.db (Encriptada)</div>
+            </div>
+
+            <div id="sec" class="section" style="padding:40px">
+                <h2 style="color:var(--cyan)">PROTOCOLOS DEFENSIVOS</h2>
+                <div class="data-card">Capa AES-256: ACTIVA</div>
+                <div class="data-card">Capa SHA-256 Check: ACTIVA</div>
+                <div class="data-card">Validación Socio Principal: ACTIVA</div>
+            </div>
+
             <div class="footer">Vertex Core v2.4 | "Discipline is everything." | 2026</div>
         </div>
     </div>
 
     <script>
         function login() {
+            // El registro salta lo primero
             document.getElementById('auth-layer').style.display = 'none';
             document.getElementById('main-ui').style.display = 'flex';
+        }
+
+        function showSection(id, btnId) {
+            // Activa los botones laterales
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active-section'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active-section');
+            document.getElementById(btnId).classList.add('active');
         }
 
         async function enviar() {
